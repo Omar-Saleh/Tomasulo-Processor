@@ -16,7 +16,7 @@ class cache(object):
 		self.writing_policy = writing_policy
 		self.cycle_time = cycle_time
 
-		self.entries = []
+		self.entries = [] # al mafrod tb2a array of class entry
 
 		for i in range(self.no_of_sets):
 			self.entries.append({})
