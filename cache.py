@@ -1,5 +1,5 @@
 import math
-class cache(object):
+class Cache(object):
 
 	"""docstring for cache"""
 
