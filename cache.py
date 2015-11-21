@@ -8,7 +8,7 @@ class Cache(object):
 		#super(cache, self).__init__()
 		#self.arg = arg
 
-		self.index = int(math.log(associativity,2))
+		self.index = int(math.log(size / (length * associativity),2))
 		
 		self.offset = int(math.log(length,2))
 		self.tag = 16 - (self.index + self.offset)
@@ -26,11 +26,16 @@ class Cache(object):
 		if(parent != None):
 			parent.child = self
 
+	def __repr__(self):
+		return "Index Bits: %s Offset Bits: %s Tag Bits: %s" % (self.index , self.offset , self.tag)
+
 #testing
-#a = cache(4,4,4,4,"mo",None)
+a = Cache(2048,8,4,4,"wb",None)
 #b = cache(4,4,4,4,"ahmed",a)
 #print(b.parent)
 #
-
-
-
+print(a) 
+mask = 0
+for i in range(1 , a.index + 1):
+	mask |= (1 << (16 - (a.tag + i)))
+print(bin(mask))

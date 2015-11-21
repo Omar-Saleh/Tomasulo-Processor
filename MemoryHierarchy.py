@@ -12,13 +12,24 @@ class MemoryHierarchy(object):
 		index_bits = cache.index
 		offset_bits = cache.offset
 
-		tag = address[:tag_bits]
-		index = address[tag_bits:tag_bits+index_bits]
-		offset = address[-offset_bits:]
-		print(tag, index , offset)
-		for i in range(len(cache.entries)):
-			if tag in cache.entries[i]:
-				m.update(entries[i][tag] , cache.parent)
+	# 	Binary Conversion 
+	#	tag = address[:tag_bits]
+	#	index = address[tag_bits:tag_bits+index_bits]
+	#	offset = address[-offset_bits:]
+
+		""" Using Numbers instead of binary the mask only sets
+		the tag bits for the address_tag and the index bits for the index_tag """
+		mask = 0
+		for i in range(1 , a.tag_bits + 1):
+			mask |= (1 << (16 - i))
+		address_tag = address & mask
+		mask = 0
+		for i in range(1 , a.index_bits + 1):
+			mask |= (1 << (16 - (a.tag_bits + i)))
+		address_index = address & mask
+		# Checking with the address_index and address_tag for the entry
+		if address_tag in cache.entries[address_index]:
+			m.update(entries[address_index][address_tag] , cache.parent)
 		if(cache.child != None):
 			search(address, cache.chid)
 		else:
@@ -28,10 +39,12 @@ class MemoryHierarchy(object):
 			
 	#def search(address , cache):
 		
-
+# Update should update all the cache blocks above the level where the entry was found
 	def update(self, entry, cache):
 		pass
 
+
+# Write Back should write down to a cache/main memory if there was no empty space to write and the entry was marked as dirty
 	def write_back(self, entry, cache):
 		pass
 
