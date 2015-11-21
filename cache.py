@@ -8,10 +8,10 @@ class Cache(object):
 		#super(cache, self).__init__()
 		#self.arg = arg
 
-		self.index = (int) (math.log(associativity,2))
+		self.index = int(math.log(associativity,2))
 		
-		self.offset = (int) (math.log(length,2))
-		self.tag = 16-(self.index + self.offset)
+		self.offset = int(math.log(length,2))
+		self.tag = 16 - (self.index + self.offset)
 		self.no_of_sets = associativity
 		self.writing_policy = writing_policy
 		self.cycle_time = cycle_time
