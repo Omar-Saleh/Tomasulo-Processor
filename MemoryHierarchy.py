@@ -3,9 +3,11 @@ from Cache import *
 
 class MemoryHierarchy(object):
 	"""docstring for Memory-hierarchy  : cache_l1 is the level 1 cache  , line is the  16 bit address"""
-	def __init__(self, cache_l1):
-		self.cache_l1 = cache_l1
-
+	def __init__(self, filename, main_memory_access_time):
+		self.i_cache = filename
+		self.elapsed_time = 0
+		self.main_memory = {}
+		self.main_memory_access_time = main_memory_access_time
 
 	def search(self, address, cache):
 		tag_bits = cache.tag
@@ -29,11 +31,14 @@ class MemoryHierarchy(object):
 		address_index = address & mask
 		# Checking with the address_index and address_tag for the entry
 		if address_tag in cache.entries[address_index]:
+			self.elapsed_time += cache.hit_cycle_time
 			m.update(entries[address_index][address_tag] , cache.parent)
 		if(cache.child != None):
+			self.elapsed_time += cache.miss_cycle_time
 			search(address, cache.chid)
 		else:
 		# Fetching From Main Memory...Need to create a new entry and propagate it upwards to all cache levels
+			self.elapsed_time += cache.miss_cycle_time + self.main_memory_access_time
 			e = Entry()
 			m.update(e, cache) #+ main memory cycle time 
 			
@@ -48,6 +53,6 @@ class MemoryHierarchy(object):
 	def write_back(self, entry, cache):
 		pass
 
-a = Cache(4,4,4,4,"wb",None)
-m = MemoryHierarchy(a)
+a = Cache(4,4,4,4,4,"wb",None)
+m = MemoryHierarchy(a , 20)
 m.search("01010101", a)
