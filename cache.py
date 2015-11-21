@@ -4,7 +4,7 @@ class Cache(object):
 	"""docstring for cache"""
 
 	
-	def __init__(self, size, length, associativity, hit_cycle_time, miss_cycle_time, writing_policy,parent ):
+	def __init__(self, size, length, associativity, cycle_time, writing_policy,parent ):
 		#super(cache, self).__init__()
 		#self.arg = arg
 
@@ -12,11 +12,12 @@ class Cache(object):
 		
 		self.offset = int(math.log(length,2))
 		self.tag = 16 - (self.index + self.offset)
-		self.num_of_sets = size / (length * associativity)
+		self.num_of_sets = int( size / (length * associativity))
 		self.set_size = associativity
 		self.writing_policy = writing_policy
-		self.hit_cycle_time = hit_cycle_time
-		self.miss_cycle_time = miss_cycle_time
+		#self.hit_cycle_time = hit_cycle_time
+		#self.miss_cycle_time = miss_cycle_time
+		self.cycle_time = cycle_time
 		self.entries = [] # al mafrod tb2a array of class entry
 
 		for i in range(self.num_of_sets):
@@ -27,10 +28,13 @@ class Cache(object):
 		if(parent != None):
 			parent.child = self
 
+		print(self.num_of_sets)
+
 	def __repr__(self):
 		return "Index Bits: %s Offset Bits: %s Tag Bits: %s" % (self.index , self.offset , self.tag)
 
 #testing
+
 #a = Cache(2048,8,4,4,"wb",None)
 #b = cache(4,4,4,4,"ahmed",a)
 #print(b.parent)
