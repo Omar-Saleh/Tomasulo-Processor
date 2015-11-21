@@ -26,10 +26,12 @@ class MemoryHierarchy(object):
 		for i in range(1 , cache.tag + 1):
 			mask |= (1 << (16 - i))
 		address_tag = address & mask
+	
 		mask = 0
 		for i in range(1 , cache.index + 1):
 			mask |= (1 << (16 - (cache.tag + i)))
 		address_index = address & mask
+		address_index >>= cache.offset
 		# Checking with the address_index and address_tag for the entry
 		print(address_index)
 		print(mask)
@@ -43,7 +45,7 @@ class MemoryHierarchy(object):
 		else:
 		# Fetching From Main Memory...Need to create a new entry and propagate it upwards to all cache levels
 			self.elapsed_time += cache.cycle_time + self.main_memory_access_time
-			e = Entry()
+			e = Entry(1, 1, 512, "aa")
 			m.update(e, cache) #+ main memory cycle time 
 			
 	#def search(address , cache):
@@ -55,12 +57,14 @@ class MemoryHierarchy(object):
 		for i in range(1 , cache.tag + 1):
 			mask |= (1 << (16 - i))
 		address_tag = entry.address & mask
+
 		mask = 0
 		for i in range(1 , cache.index + 1):
 			mask |= (1 << (16 - (cache.tag + i)))
 		address_index = entry.address & mask
+		address_index >>= cache.offset
 
-		if(cache.entries[address_index].size() == cache.set_size ):
+		if(len(cache.entries[address_index])== cache.set_size ):
 			m.replace(entry, cache)
 		else:
 			cache.entries[address_index][address_tag] = entry
@@ -77,10 +81,12 @@ class MemoryHierarchy(object):
 		for i in range(1 , cache.tag + 1):
 			mask |= (1 << (16 - i))
 		address_tag = entry.address & mask
+
 		mask = 0
 		for i in range(1 , cache.index + 1):
 			mask |= (1 << (16 - (cache.tag + i)))
 		address_index = entry.address & mask
+		address_index >>= cache.offset
 
 		r = random.randint(1,cache.set_size)
 
