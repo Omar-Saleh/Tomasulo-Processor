@@ -11,10 +11,6 @@ class MemoryHierarchy(object):
 		self.main_memory_access_time = main_memory_access_time
 
 	def search(self, address, cache):
-		tag_bits = cache.tag
-		index_bits = cache.index
-		offset_bits = cache.offset
-
 	# 	Binary Conversion 
 	#	tag = address[:tag_bits]
 	#	index = address[tag_bits:tag_bits+index_bits]
@@ -22,17 +18,8 @@ class MemoryHierarchy(object):
 
 		""" Using Numbers instead of binary the mask only sets
 		the tag bits for the address_tag and the index bits for the index_tag """
-		mask = 0
-		for i in range(1 , cache.tag + 1):
-			mask |= (1 << (16 - i))
-		address_tag = address & mask
-		address_tag >>= (cache.offset + cache.index)
-
-		mask = 0
-		for i in range(1 , cache.index + 1):
-			mask |= (1 << (16 - (cache.tag + i)))
-		address_index = address & mask
-		address_index >>= cache.offset
+		address_tag = tag(address, cache.tag, cache.index, cache.offset)
+		address_index = index(address, cache.tag, cache.index, cache.offset)
 		# Checking with the address_index and address_tag for the entry
 		# print(address_index)
 		# print(mask)
@@ -54,17 +41,8 @@ class MemoryHierarchy(object):
 # Update should update all the cache blocks above the level where the entry was found
 	def update(self, entry, cache):
 		#pass
-		mask = 0
-		for i in range(1 , cache.tag + 1):
-			mask |= (1 << (16 - i))
-		address_tag = entry.address & mask
-		address_tag >>= (cache.offset + cache.index)
-
-		mask = 0
-		for i in range(1 , cache.index + 1):
-			mask |= (1 << (16 - (cache.tag + i)))
-		address_index = entry.address & mask
-		address_index >>= cache.offset
+		address_tag = tag(entry.address, cache.tag, cache.index, cache.offset)
+		address_index = index(entry.address, cache.tag, cache.index, cache.offset)
 
 		if len(cache.entries[address_index]) == cache.set_size:
 			self.replace(entry, cache)
@@ -79,17 +57,9 @@ class MemoryHierarchy(object):
 # Write Back should write down to a cache/main memory if there was no empty space to write and the entry was marked as dirty
 	def replace(self, entry, cache):
 		#pass
-		mask = 0
-		for i in range(1 , cache.tag + 1):
-			mask |= (1 << (16 - i))
-		address_tag = entry.address & mask
-		address_tag >>= (cache.offset + cache.index)
+		address_tag = tag(entry.address, cache.tag, cache.index, cache.offset)
+		address_index = index(entry.address, cache.tag, cache.index, cache.offset)
 
-		mask = 0
-		for i in range(1 , cache.index + 1):
-			mask |= (1 << (16 - (cache.tag + i)))
-		address_index = entry.address & mask
-		address_index >>= cache.offset
 		r = random.randint(0,cache.set_size - 1)
 		temp = entry
 		for x in cache.entries[address_index].keys():
@@ -109,13 +79,29 @@ class MemoryHierarchy(object):
 				pass
 
 
+def tag(address, tag_bits, index_bits, offset_bits):
+	mask = 0
+	for i in range(1 , tag_bits + 1):
+		mask |= (1 << (16 - i))
+	address_tag = address & mask
+	print(bin(mask))
+	address_tag >>= (offset_bits + index_bits)
+	return address_tag
 
+def index(address, tag_bits, index_bits, offset_bits):
+	mask = 0
+	for i in range(1 , index_bits + 1):
+		mask |= (1 << (16 - (tag_bits + i)))
+	address_index = address & mask
+	address_index >>= offset_bits
+	return address_index
 
 a = Cache(512,16,1,4,"wb",None)
 m = MemoryHierarchy(a , 20)
-m.search(50, a)
-print(m.i_cache)
-print(m.i_cache.entries[3])
-print(int("111000110001" , 2))
-m.replace(Entry(1 , 1 ,int("111000110001" , 2), "ab"), m.i_cache)
-print(m.i_cache.entries[3])
+# m.search(50, a)
+# print(m.i_cache)
+# print(m.i_cache.entries[3])
+# print(int("111000110001" , 2))
+# m.replace(Entry(1 , 1 ,int("111000110001" , 2), "ab"), m.i_cache)
+# print(m.i_cache.entries[3])
+#print(tag(int("1100000000000000" , 2) , 6, 5 ,5))
