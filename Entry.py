@@ -6,4 +6,7 @@ class Entry(object):
 		self.dirty_bit = dirty_bit
 		self.data = data
 		self.address = address
-		self.data = None
+
+
+	def __repr__(self):
+		return "Valid: %s Dirty: %s Address: %s Data: %s" % (self.valid_bit, self.dirty_bit, self.address, self.data)

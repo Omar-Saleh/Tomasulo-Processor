@@ -28,10 +28,10 @@ class Cache(object):
 		if(parent != None):
 			parent.child = self
 
-		print(self.num_of_sets)
+		#print(self.num_of_sets)
 
 	def __repr__(self):
-		return "Index Bits: %s Offset Bits: %s Tag Bits: %s" % (self.index , self.offset , self.tag)
+		return "Index Bits: %s Offset Bits: %s Tag Bits: %s" % (self.index, self.offset, self.tag)
 
 #testing
 

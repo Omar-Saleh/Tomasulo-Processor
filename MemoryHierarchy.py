@@ -26,27 +26,28 @@ class MemoryHierarchy(object):
 		for i in range(1 , cache.tag + 1):
 			mask |= (1 << (16 - i))
 		address_tag = address & mask
-	
+		address_tag >>= (cache.offset + cache.index)
+
 		mask = 0
 		for i in range(1 , cache.index + 1):
 			mask |= (1 << (16 - (cache.tag + i)))
 		address_index = address & mask
 		address_index >>= cache.offset
 		# Checking with the address_index and address_tag for the entry
-		print(address_index)
-		print(mask)
-		print(cache)
+		# print(address_index)
+		# print(mask)
+		# print(cache)
 		if address_tag in cache.entries[address_index]:
 			self.elapsed_time += cache.hit_cycle_time
-			m.update(entries[address_index][address_tag] , cache.parent)
-		if(cache.child != None):
+			self.update(entries[address_index][address_tag] , cache.parent)
+		if cache.child != None:
 			self.elapsed_time += cache.cycle_time
 			search(address, cache.chid)
 		else:
 		# Fetching From Main Memory...Need to create a new entry and propagate it upwards to all cache levels
 			self.elapsed_time += cache.cycle_time + self.main_memory_access_time
-			e = Entry(1, 1, 512, "aa")
-			m.update(e, cache) #+ main memory cycle time 
+			e = Entry(1, 0, 50, "aa")
+			self.update(e, cache) #+ main memory cycle time 
 			
 	#def search(address , cache):
 		
@@ -57,6 +58,7 @@ class MemoryHierarchy(object):
 		for i in range(1 , cache.tag + 1):
 			mask |= (1 << (16 - i))
 		address_tag = entry.address & mask
+		address_tag >>= (cache.offset + cache.index)
 
 		mask = 0
 		for i in range(1 , cache.index + 1):
@@ -64,14 +66,14 @@ class MemoryHierarchy(object):
 		address_index = entry.address & mask
 		address_index >>= cache.offset
 
-		if(len(cache.entries[address_index])== cache.set_size ):
-			m.replace(entry, cache)
+		if len(cache.entries[address_index]) == cache.set_size:
+			self.replace(entry, cache)
 		else:
 			cache.entries[address_index][address_tag] = entry
 
-		if(cache.parent != None):
+		if cache.parent != None:
 			self.elapsed_time += cache.cycle_time
-			m.update(entry,cache.parent)
+			self.update(entry,cache.parent)
 
 
 # Write Back should write down to a cache/main memory if there was no empty space to write and the entry was marked as dirty
@@ -81,30 +83,39 @@ class MemoryHierarchy(object):
 		for i in range(1 , cache.tag + 1):
 			mask |= (1 << (16 - i))
 		address_tag = entry.address & mask
+		address_tag >>= (cache.offset + cache.index)
 
 		mask = 0
 		for i in range(1 , cache.index + 1):
 			mask |= (1 << (16 - (cache.tag + i)))
 		address_index = entry.address & mask
 		address_index >>= cache.offset
-
-		r = random.randint(1,cache.set_size)
-
+		r = random.randint(0,cache.set_size - 1)
+		temp = entry
 		for x in cache.entries[address_index].keys():
-			if(r == 0):
+			if r == 0:
 				temp = cache.entries[address_index][x]
 				del cache.entries[address_index][x]
 				cache.entries[address_index][address_tag] = entry
 				break
-
 			r -= 1
 
-		if(temp.dirty_bit == 1):
-			m.replace(temp,cache.child)
+		if temp.dirty_bit == 1:
+			# Still Propagating in cache
+			if cache.child != None:
+				self.replace(temp,cache.child)
+			# Reached Main Memory
+			else:
+				pass
 
 
 
 
-a = Cache(512,16,2,4,"wb",None)
+a = Cache(512,16,1,4,"wb",None)
 m = MemoryHierarchy(a , 20)
 m.search(50, a)
+print(m.i_cache)
+print(m.i_cache.entries[3])
+print(int("111000110001" , 2))
+m.replace(Entry(1 , 1 ,int("111000110001" , 2), "ab"), m.i_cache)
+print(m.i_cache.entries[3])
