@@ -1,15 +1,17 @@
 from Entry import *
 from Cache import *
+from Parser import *
 import random
 
 class MemoryHierarchy(object):
 	"""docstring for Memory-hierarchy  : cache_l1 is the level 1 cache  , line is the  16 bit address"""
 	def __init__(self, filename, main_memory_access_time):
-		self.i_cache = filename
 		self.elapsed_time = 0
-		test = int("111000110001" , 2)
-		self.main_memory = {50: "aa" , test: "ab"}
+		#self.main_memory = {50: "aa" , test: "ab"}
 		self.main_memory_access_time = main_memory_access_time
+		self.parser = Parser(filename)
+		self.level1_cache = None
+		self.create()
 
 	def search(self, address, cache):
 	# 	Binary Conversion 
@@ -31,6 +33,7 @@ class MemoryHierarchy(object):
 			self.update(entries[address_index][address_tag] , cache.parent)
 		else:
 			cache.misses += 1
+
 		if cache.child != None:
 			self.elapsed_time += cache.cycle_time
 			search(address, cache.chid)
@@ -88,6 +91,16 @@ class MemoryHierarchy(object):
 			else:
 				pass
 
+	def create(self):
+		array = self.parser.cache_array
+		parent = None
+		for i in range(len(array)):
+			c  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][1],parent)
+			if i == 0 :
+				self.level1_cache = c
+
+			parent = c
+
 
 def calculate_tag(address, tag_bits, index_bits, offset_bits):
 	mask = 0
@@ -106,13 +119,21 @@ def calculate_index(address, tag_bits, index_bits, offset_bits):
 	address_index >>= offset_bits
 	return address_index
 
-a = Cache(512,16,1,4,"wb",None)
-m = MemoryHierarchy(a , 20)
-m.search(50, a)
-print(m.i_cache.entries[3])
-m.search(int("111000110001" , 2) , a)
-# print(m.i_cache)
+# a = Cache(512,16,1,4,"wb",None)
+# m = MemoryHierarchy(a , 20)
+# m.search(50, a)
 # print(m.i_cache.entries[3])
-# print(int("111000110001" , 2))
-print(m.i_cache.entries[3])
-#print(tag(int("1100000000000000" , 2) , 6, 5 ,5))
+# m.search(int("111000110001" , 2) , a)
+# # print(m.i_cache)
+# # print(m.i_cache.entries[3])
+# # print(int("111000110001" , 2))
+# print(m.i_cache.entries[3])
+# #print(tag(int("1100000000000000" , 2) , 6, 5 ,5))
+#Testing 
+m = MemoryHierarchy("file.txt",20)
+x = m.level1_cache
+
+
+for i in range(4):
+	print(x)
+	x = x.child

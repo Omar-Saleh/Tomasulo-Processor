@@ -24,12 +24,11 @@ class Cache(object):
 		for i in range(self.num_of_sets):
 			self.entries.append({})
 		self.child = None
-		self.parent = None
 		self.parent = parent
+
 		if(parent != None):
 			parent.child = self
 		
-		print(self.num_of_sets)
 
 	def hit_ratio(self):
 		return (self.hits / (self.hits + self.misses))*100
