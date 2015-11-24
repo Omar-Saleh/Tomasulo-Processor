@@ -26,8 +26,11 @@ class MemoryHierarchy(object):
 		# print(mask)
 		# print(cache)
 		if address_tag in cache.entries[address_index]:
+			cache.hits += 1
 			self.elapsed_time += cache.hit_cycle_time
 			self.update(entries[address_index][address_tag] , cache.parent)
+		else:
+			cache.misses += 1
 		if cache.child != None:
 			self.elapsed_time += cache.cycle_time
 			search(address, cache.chid)

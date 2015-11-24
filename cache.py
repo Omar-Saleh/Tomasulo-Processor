@@ -19,7 +19,8 @@ class Cache(object):
 		#self.miss_cycle_time = miss_cycle_time
 		self.cycle_time = cycle_time
 		self.entries = [] # al mafrod tb2a array of class entry
-
+		self.hits = 0
+		self.misses = 0
 		for i in range(self.num_of_sets):
 			self.entries.append({})
 		self.child = None
@@ -27,11 +28,14 @@ class Cache(object):
 		self.parent = parent
 		if(parent != None):
 			parent.child = self
+		
+		print(self.num_of_sets)
 
-		#print(self.num_of_sets)
+	def hit_ratio(self):
+		return (self.hits / (self.hits + self.misses))*100
 
 	def __repr__(self):
-		return "Index Bits: %s Offset Bits: %s Tag Bits: %s" % (self.index, self.offset, self.tag)
+		return "Index Bits: %s Offset Bits: %s Tag Bits: %s" % (self.index , self.offset , self.tag)
 
 #testing
 
