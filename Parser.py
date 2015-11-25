@@ -25,7 +25,18 @@ class Parser(object):
 
 		# Reading Instructions and indexing labels
 		# Labels are indexed in self.labels
-		instructions = [lines[i].replace(',' , ' ').split()]
-		print(self.pc)
+		instructions = [lines[i].replace(',' , ' ') for i in range(i, len(lines))]
+		self.labels = {}
+		self.scan(instructions)
+		print(self.labels)
+		# print(self.pc)
+
+	# Index Labels to their respective addresses
+	def scan(self, instructions):
+		counter = self.pc
+		for instruction in instructions:
+			if ':' in instruction:
+				self.labels[instruction.replace(':', ' ').split()[0]] = counter
+			counter += 2
 
 p = Parser("file.txt")
