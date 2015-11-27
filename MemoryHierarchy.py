@@ -12,13 +12,20 @@ class MemoryHierarchy(object):
 		self.parser = Parser(filename)
 		self.level1_cache = None
 		self.create()
+		self.pc = self.parser.pc
+		self.instructions = self.parser.instructions
+		for i in range(len(self.instructions)):
+	 		self.search(self.pc, self.level1_cache)
+	 		self.pc += 2
+	 		print("First Instruction Over")
+
 
 	def search(self, address, cache):
 	# 	Binary Conversion 
 	#	tag = address[:tag_bits]
 	#	index = address[tag_bits:tag_bits+index_bits]
 	#	offset = address[-offset_bits:]
-
+	#	print(cache.child)
 		""" Using Numbers instead of binary the mask only sets
 		the tag bits for the address_tag and the index bits for the index_tag """
 		address_tag = calculate_tag(address, cache.tag, cache.index, cache.offset)
@@ -29,25 +36,28 @@ class MemoryHierarchy(object):
 		# print(cache)
 		if address_tag in cache.entries[address_index]:
 			cache.hits += 1
-			self.elapsed_time += cache.hit_cycle_time
-			self.update(entries[address_index][address_tag] , cache.parent)
+			self.elapsed_time += cache.cycle_time
+			if cache.parent != None:
+				self.update(cache.entries[address_index][address_tag] , cache.parent)
+		# Address Not Found Need to look in the next child
 		else:
 			cache.misses += 1
-
-		if cache.child != None:
-			self.elapsed_time += cache.cycle_time
-			search(address, cache.chid)
-		else:
-		# Fetching From Main Memory...Need to create a new entry and propagate it upwards to all cache levels
-			self.elapsed_time += cache.cycle_time + self.main_memory_access_time
-			e = Entry(1, 0, address, self.main_memory[address])
-			self.update(e, cache) #+ main memory cycle time 
+			if cache.child != None:
+				self.elapsed_time += cache.cycle_time
+				self.search(address, cache.child)
+			else:
+			# Fetching From Main Memory...Need to create a new entry and propagate it upwards to all cache levels
+				# print("here")
+				self.elapsed_time += cache.cycle_time + self.main_memory_access_time
+				e = Entry(1, 0, address)
+				self.update(e, cache) #+ main memory cycle time 
 			
 	#def search(address , cache):
 		
 # Update should update all the cache blocks above the level where the entry was found
 	def update(self, entry, cache):
-		#pass
+		# print("Checkpoint")
+		# print(entry , cache)
 		address_tag = calculate_tag(entry.address, cache.tag, cache.index, cache.offset)
 		address_index = calculate_index(entry.address, cache.tag, cache.index, cache.offset)
 
@@ -59,6 +69,8 @@ class MemoryHierarchy(object):
 		if cache.parent != None:
 			self.elapsed_time += cache.cycle_time
 			self.update(entry,cache.parent)
+		# else:
+			# print("Last")
 
 
 # Write Back should write down to a cache/main memory if there was no empty space to write and the entry was marked as dirty
@@ -131,9 +143,4 @@ def calculate_index(address, tag_bits, index_bits, offset_bits):
 # #print(tag(int("1100000000000000" , 2) , 6, 5 ,5))
 #Testing 
 m = MemoryHierarchy("file.txt",20)
-x = m.level1_cache
-
-
-for i in range(4):
-	print(x)
-	x = x.child
+print(m.level1_cache.misses , m.level1_cache.hits)
