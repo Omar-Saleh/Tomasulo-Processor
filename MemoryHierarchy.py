@@ -14,10 +14,10 @@ class MemoryHierarchy(object):
 		self.create()
 		self.pc = self.parser.pc
 		self.instructions = self.parser.instructions
-		for i in range(len(self.instructions)):
-	 		self.search(self.pc, self.level1_cache)
-	 		self.pc += 2
-	 		print("First Instruction Over")
+		#for i in range(len(self.instructions)):
+	 	#	self.search(self.pc, self.level1_cache)
+	 	#	self.pc += 2
+	 	#	print("First Instruction Over")
 
 
 	def search(self, address, cache):
@@ -142,5 +142,5 @@ def calculate_index(address, tag_bits, index_bits, offset_bits):
 # print(m.i_cache.entries[3])
 # #print(tag(int("1100000000000000" , 2) , 6, 5 ,5))
 #Testing 
-m = MemoryHierarchy("file.txt",20)
-print(m.level1_cache.misses , m.level1_cache.hits)
+#m = MemoryHierarchy("file.txt",20)
+#print(m.level1_cache.misses , m.level1_cache.hits)
