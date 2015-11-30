@@ -28,6 +28,10 @@ class Parser(object):
 		self.instructions = [lines[i].replace(',' , ' ') for i in range(i, len(lines))]
 		self.labels = {}
 		self.scan(self.instructions)
+		print(self.instructions)
+		for i in range(len(self.instructions)):
+			self.instructions[i] = self.format(self.instructions[i])
+		print(self.instructions)
 		#print(self.labels)
 		# print(self.pc)
 
@@ -39,4 +43,18 @@ class Parser(object):
 				self.labels[instruction.replace(':', ' ').split()[0]] = counter
 			counter += 2
 
-# p = Parser("file.txt")
+	def format(self, instruction):
+		splitIndex = instruction.find(':')
+		if splitIndex > 0:
+			instruction = list(instruction)
+			instruction[splitIndex - 1] = ' '
+			instruction[splitIndex + 1] = ' '
+			instruction = "".join(instruction)
+		instruction = instruction.split()
+		if splitIndex > 0:
+			instruction = instruction[instruction.index(':') + 1::1]
+		return instruction
+		#print(instruction)
+
+
+p = Parser("file.txt")
