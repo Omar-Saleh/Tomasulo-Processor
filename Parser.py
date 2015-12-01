@@ -5,7 +5,7 @@ class Parser(object):
 		#elf.arg = arg
 		self.branchingInstructions = ["beq","jmp","jalr","ret"]
 		self.addInstructions = ["add","sub","addi"]
-		self.s = ["mul","div"]
+		self.mulInstructions = ["mul","div"]
 		self.ldstInstructions = ["lw","sw"]
 		number = int(input("Please enter the number of caches: "))
 		with open(filename , "r+") as my_file:

@@ -24,4 +24,3 @@ class ReservationStation(object):
 		self.dest = dest
 		self.address = address
 		self.busy = True
-		

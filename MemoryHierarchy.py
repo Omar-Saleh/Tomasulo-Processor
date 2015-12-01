@@ -9,6 +9,9 @@ class MemoryHierarchy(object):
 		self.elapsed_time = 0
 		#self.main_memory = {50: "aa" , test: "ab"}
 		self.main_memory_access_time = main_memory_access_time
+		self.registerValues = {}
+		for i in range(31):
+			self.registerValues['r' + str(i)] = 0
 		self.parser = Parser(filename)
 		self.level1_cache = None
 		self.create()
