@@ -12,6 +12,7 @@ class ROB(object):
 	def add(self,rtype,dest ,value):
 		self.ROB_Entries[self.tail % self.size] = ROB_Entry(rtype,dest,value)
 		self.tail += 1
+		return tail-1
 	
 	def update(self, value,index):
 		self.ROB_Entries[index].value = value
@@ -26,3 +27,6 @@ class ROB(object):
 		self.head = 0
 		self.tail = 0
 		self.ROB_Entries = [None] *self.size
+
+	def isFull(self):
+		return self.head-1 == self.tail

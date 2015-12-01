@@ -3,6 +3,10 @@ class Parser(object):
 	def __init__(self, filename):
 		#supes Parser, self).__init__()
 		#elf.arg = arg
+		self.branchingInstructions = ["beq","jmp","jalr","ret"]
+		self.addInstructions = ["add","sub","addi"]
+		self.mulInstructions = ["mul","div"]
+		self.ldstInstructions = ["lw","sw"]
 		number = int(input("Please enter the number of caches: "))
 		with open(filename , "r+") as my_file:
 			lines = my_file.read().splitlines()
