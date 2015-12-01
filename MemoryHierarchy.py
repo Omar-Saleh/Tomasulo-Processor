@@ -104,7 +104,7 @@ class MemoryHierarchy(object):
 				pass
 
 	def create(self):
-		array = self.parser.cache_array
+		array = self.parser.cacheArray
 		parent = None
 		for i in range(len(array)):
 			c  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][1],parent)

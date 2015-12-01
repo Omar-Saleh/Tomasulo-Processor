@@ -6,10 +6,10 @@ class Parser(object):
 		number = int(input("Please enter the number of caches: "))
 		with open(filename , "r+") as my_file:
 			lines = my_file.read().splitlines()
-		self.cache_array = []
+		self.cacheArray = []
 		i = 0
 		while i in range(number): 
-			self.cache_array.append(lines[i].replace('(' , ' ').split()[1].replace(')',' ').split()[0].replace(',',' ').split())
+			self.cacheArray.append(lines[i].replace('(' , ' ').split()[1].replace(')',' ').split()[0].replace(',',' ').split())
 			i += 1
 		while ".org" not in lines[i].lower():
 			i += 1
@@ -25,13 +25,21 @@ class Parser(object):
 
 		# Reading Instructions and indexing labels
 		# Labels are indexed in self.labels
+
 		self.instructions = [lines[i].replace(',' , ' ') for i in range(i, len(lines))]
 		self.labels = {}
 		self.scan(self.instructions)
 		print(self.instructions)
 		for i in range(len(self.instructions)):
 			self.instructions[i] = self.format(self.instructions[i])
+		indexedInstructions = {}
+		tempPc = self.pc
+		for i in range(len(self.instructions)):
+			indexedInstructions[tempPc] = self.instructions[i]
+			tempPc += 2
+		self.instructions = indexedInstructions
 		print(self.instructions)
+		# print(indexedInstructions)
 		#print(self.labels)
 		# print(self.pc)
 
@@ -44,12 +52,14 @@ class Parser(object):
 			counter += 2
 
 	def format(self, instruction):
+		# Removing Labels if there was any
 		splitIndex = instruction.find(':')
 		if splitIndex > 0:
 			instruction = list(instruction)
 			instruction[splitIndex - 1] = ' '
 			instruction[splitIndex + 1] = ' '
 			instruction = "".join(instruction)
+		# Splitting the instruction into an array
 		instruction = instruction.split()
 		if splitIndex > 0:
 			instruction = instruction[instruction.index(':') + 1::1]
