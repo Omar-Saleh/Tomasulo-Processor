@@ -1,0 +1,11 @@
+cacheL1(512,4,1,4,wb)
+cacheL2(1024,4,1,8,wb)
+cacheL2(4096,4,1,16,wb)
+cacheL2(4096,4,1,16,wb)
+
+.ORG 16
+loop : add r1 , r2 , r3
+test: sub r4 , r3 , r2
+loop : mul r1 , r2 , r3
+test: div r1 , r3 , r2
+jr r1
