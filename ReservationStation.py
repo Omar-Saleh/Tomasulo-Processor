@@ -10,8 +10,8 @@ class ReservationStation(object):
 		self.notReadySource2 = None
 		self.dest = None
 		self.address = None
+		self.currentCycles = cycles
 		self.cycles = cycles
-
 	def check(self):
 		return self.busy
 
@@ -24,3 +24,7 @@ class ReservationStation(object):
 		self.dest = dest
 		self.address = address
 		self.busy = True
+
+	def execute(self):
+		self.currentCycles -= 1
+

@@ -5,7 +5,7 @@ cacheL2(4096,4,1,16,wb)
 
 .ORG 16
 loop : add r1 , r2 , r3
-test: sub r4 , r3 , r2
+test: addi r4 , r3 , 20
 loop : mul r1 , r2 , r3
 test: div r1 , r3 , r2
 jr r1

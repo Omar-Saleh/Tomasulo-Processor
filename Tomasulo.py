@@ -8,8 +8,9 @@ class Tomasulo(object):
 	"""docstring for Tomasulo"""
 	def __init__(self):
 		self.reservationStations = [] 
-
 		self.m = MemoryHierarchy("file.txt",20)
+		self.registerFile = self.m.registerValues
+		self.memory = self.m.main_memory
 		#print(m.instructions)
 		self.instructions = self.m.instructions
 		self.registerStatus = RegisterStatus()
@@ -48,8 +49,9 @@ class Tomasulo(object):
 	def issue(self):
 		#checking rob
 		if not self.rob.isFull():
-			instruction = self.instructionBuffer.peek()
+			print("HI")
 
+			instruction = self.instructionBuffer.peek()
 			if instruction[0] in self.m.parser.addInstructions :    #check if its in the add unit
 				self.helper(instruction, "ADD")
 			elif instruction[0] in self.m.parser.mulInstructions :
@@ -58,10 +60,12 @@ class Tomasulo(object):
 				self.helper(instruction, "LDST")
 
 	def helper(self,instruction, s):
+		print("here")
 		for i in range(len(self.reservationStations)):
-			print(not self.reservationStations[i].check(), self.reservationStations[i].name, s)
+			#print(not self.reservationStations[i].check(), self.reservationStations[i].name, s)
 			if self.reservationStations[i].name == s and not self.reservationStations[i].check():
-				print("Here")
+				print("here")
+				# print(instruction)
 				self.instructionBuffer.issue()
 				entryNumber = self.rob.add(instruction[0],instruction[1],None)
 
@@ -72,12 +76,15 @@ class Tomasulo(object):
 					readySource1 = None
 					notReadySource1 = instruction[2]
 
-				if self.registerStatus.registers[instruction[3]] == None :
+				if 'r' in instruction[3] and self.registerStatus.registers[instruction[3]] == None:
 					readySource2 = instruction[3]
 					notReadySource2 = None
-				else :
+				elif 'r' in instruction[3] and self.registerStatus.registers[instruction[3]] != None:
 					readySource2 = None
 					notReadySource2 = instruction[3]
+				else:
+					readySource2 = instruction[3]
+					notReadySource2 = None
 
 				self.registerStatus.registers[instruction[1]] = entryNumber
 				if s == "LDST":
@@ -87,14 +94,101 @@ class Tomasulo(object):
 				self.reservationStations[i].reserve(instruction[0], readySource1 , readySource2 , notReadySource1 , notReadySource2 , entryNumber , address)
 				break
 
+	def execute(self):
+		for i in range(len(self.reservationStations)):
+			currentStation = self.reservationStations[i]
 
+			if currentStation.check():
+				if currentStation.notReadySource1 != None :
+					if self.registerStatus.registers[currentStation.notReadySource1] == None :
+						currentStation.readySource1 = currentStation.notReadySource1
+						currentStation.notReadySource1 = None
+
+				if currentStation.notReadySource2  != None :
+					if self.registerStatus.registers[currentStation.notReadySource2] == None :
+						currentStation.readySource2 = currentStation.notReadySource2
+						currentStation.notReadySource2 = None
+
+				if currentStation.notReadySource1 == None and currentStation.notReadySource2 == None:
+					currentStation.execute() # it decrements current cycles 
+						
+
+	def writeBack(self):
+		for i in range(len(self.reservationStations)):
+			currentStation = self.reservationStations[i]
+			print("kkkkk")
+			print(currentStation.currentCycles )
+			if currentStation.busy and currentStation.currentCycles == 0:
+				result = self.calculate(currentStation.op , currentStation.readySource1, currentStation.readySource2 ,currentStation.address)
+				print(result)
+				print("-----")
+				self.rob.update(result,currentStation.dest)
+				registerName = self.rob.ROB_Entries[currentStation.dest].dest
+				#self.registerFile[registerName] = result
+				self.registerStatus.registers[registerName] = None
+				currentStation.currentCycles = currentStation.cycles
+				currentStation.busy = False
+
+	def commit(self):
+		print(self.rob.ROB_Entries)
+		if self.rob.ROB_Entries[self.rob.head % self.rob.size] != None :
+			registerName = self.rob.ROB_Entries[self.rob.head % self.rob.size].dest
+			self.registerFile[registerName] = self.rob.ROB_Entries[self.rob.head % self.rob.size].value
+			self.rob.commit()
+
+
+	def calculate(self,op, source1 , source2 , address):
+		if op == "addi":
+			a= self.registerFile[source1]
+			return a + int(source2)  # not a source its just a number
+		elif op == "add":
+			a = self.registerFile[source1]
+			b = self.registerFile[source2]
+			return a + b
+		elif op == "sub" :
+			a = self.registerFile[source1]
+			b = self.registerFile[source2]
+			return a - b
+		elif op == "mul":
+			a = self.registerFile[source1]
+			b = self.registerFile[source2]
+			return a * b	
+		elif op == "div":
+			a = self.registerFile[source1]
+			b = self.registerFile[source2]
+			return a // b
+		elif op == "lw":
+			self.m.search(address)
+			result = self.memory[int(address)]
+			return result
+		elif op == "Sw":
+			pass 
+
+
+
+
+					
+		
 
 t = Tomasulo()
 t.fetch()
-print(t.rob.tail)
-t.issue()
-t.issue()
-print(t.rob.head)
-print(t.rob.tail)
-print(t.registerStatus.registers)
 print(t.instructionBuffer.buffer)
+# print(t.rob.tail)
+
+print(t.instructionBuffer.peek())
+t.issue()
+# t.issue()
+t.execute()
+t.writeBack()
+t.commit()
+
+print(t.instructionBuffer.peek())
+t.issue()
+t.execute()
+t.writeBack()
+t.commit()
+print(t.registerFile)
+# print(t.rob.head)
+# print(t.rob.tail)
+# print(t.registerStatus.registers)
+# print(t.instructionBuffer.buffer)

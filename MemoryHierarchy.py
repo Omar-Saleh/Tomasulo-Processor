@@ -7,11 +7,11 @@ class MemoryHierarchy(object):
 	"""docstring for Memory-hierarchy  : cache_l1 is the level 1 cache  , line is the  16 bit address"""
 	def __init__(self, filename, main_memory_access_time):
 		self.elapsed_time = 0
-		#self.main_memory = {50: "aa" , test: "ab"}
+		self.main_memory = {50: "aa"}
 		self.main_memory_access_time = main_memory_access_time
 		self.registerValues = {}
 		for i in range(31):
-			self.registerValues['r' + str(i)] = 0
+			self.registerValues['r' + str(i)] = 5
 		self.parser = Parser(filename)
 		self.level1_cache = None
 		self.create()
