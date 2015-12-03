@@ -43,29 +43,39 @@ class Tomasulo(object):
 				self.instructionBuffer.insert(self.instructions[self.currentPC])
 				if self.instructions[self.currentPC][0].lower() in self.m.parser.branchingInstructions :
 					pass	
-				else :
+				else:
 					self.currentPC += 2
 
 	def issue(self):
 		#checking rob
-		if not self.rob.isFull():
-			print("HI")
-
-			instruction = self.instructionBuffer.peek()
-			if instruction[0] in self.m.parser.addInstructions :    #check if its in the add unit
-				self.helper(instruction, "ADD")
-			elif instruction[0] in self.m.parser.mulInstructions :
-				self.helper(instruction, "MUL")
-			elif instruction[0] in self.m.parser.ldstInstructions :
-				self.helper(instruction, "LDST")
+		count = 0
+		while self.instructionBuffer.peek() != None:
+			if not self.rob.isFull():
+				# print("HI")
+				instruction = self.instructionBuffer.peek()
+				if instruction[0] in self.m.parser.addInstructions :    #check if its in the add unit
+					if not self.helper(instruction, "ADD"):
+						break
+				elif instruction[0] in self.m.parser.mulInstructions :
+					if not self.helper(instruction, "MUL"):
+						break
+				elif instruction[0] in self.m.parser.ldstInstructions :
+					if not self.helper(instruction, "LDST"):
+						break
+				else:
+					self.instructionBuffer.issue()
+				count += 1
+		# print("COUNT IS THE COUNT COUNT COUNT" , count)
 
 	def helper(self,instruction, s):
-		print("here")
+		# print("here")
+		reservedPlace = False
 		for i in range(len(self.reservationStations)):
 			#print(not self.reservationStations[i].check(), self.reservationStations[i].name, s)
 			if self.reservationStations[i].name == s and not self.reservationStations[i].check():
-				print("here")
+				# print("here")
 				# print(instruction)
+				reservedPlace = True
 				self.instructionBuffer.issue()
 				entryNumber = self.rob.add(instruction[0],instruction[1],None)
 
@@ -93,11 +103,14 @@ class Tomasulo(object):
 					address = None
 				self.reservationStations[i].reserve(instruction[0], readySource1 , readySource2 , notReadySource1 , notReadySource2 , entryNumber , address)
 				break
+		if not reservedPlace:
+			return False
+		else:
+			return True
 
 	def execute(self):
 		for i in range(len(self.reservationStations)):
 			currentStation = self.reservationStations[i]
-
 			if currentStation.check():
 				if currentStation.notReadySource1 != None :
 					if self.registerStatus.registers[currentStation.notReadySource1] == None :
@@ -116,7 +129,7 @@ class Tomasulo(object):
 	def writeBack(self):
 		for i in range(len(self.reservationStations)):
 			currentStation = self.reservationStations[i]
-			print("kkkkk")
+			# print("kkkkk")
 			print(currentStation.currentCycles )
 			if currentStation.busy and currentStation.currentCycles == 0:
 				result = self.calculate(currentStation.op , currentStation.readySource1, currentStation.readySource2 ,currentStation.address)
@@ -131,7 +144,7 @@ class Tomasulo(object):
 
 	def commit(self):
 		print(self.rob.ROB_Entries)
-		if self.rob.ROB_Entries[self.rob.head % self.rob.size] != None :
+		if self.rob.ROB_Entries[self.rob.head % self.rob.size] != None and self.rob.ROB_Entries[self.rob.head % self.rob.size].ready:
 			registerName = self.rob.ROB_Entries[self.rob.head % self.rob.size].dest
 			self.registerFile[registerName] = self.rob.ROB_Entries[self.rob.head % self.rob.size].value
 			self.rob.commit()
@@ -166,28 +179,79 @@ class Tomasulo(object):
 
 
 
-
-					
-		
-
 t = Tomasulo()
+t.commit()
+t.writeBack()
+t.execute()
+t.issue()
 t.fetch()
 print(t.instructionBuffer.buffer)
-# print(t.rob.tail)
-
-print(t.instructionBuffer.peek())
-t.issue()
-# t.issue()
-t.execute()
-t.writeBack()
-t.commit()
-
-print(t.instructionBuffer.peek())
-t.issue()
-t.execute()
-t.writeBack()
-t.commit()
 print(t.registerFile)
+print(t.rob.ROB_Entries)
+print("-----")
+t.commit()
+t.writeBack()
+t.execute()
+t.issue()
+t.fetch()
+print(t.instructionBuffer.buffer)
+print(t.registerFile)
+print(t.rob.ROB_Entries)
+print("-----")
+t.commit()
+t.writeBack()
+t.execute()
+t.issue()
+t.fetch()
+print(t.instructionBuffer.buffer)
+print(t.registerFile)
+print(t.rob.ROB_Entries)
+print("-----")
+t.commit()
+t.writeBack()
+t.execute()
+t.issue()
+t.fetch()
+print(t.instructionBuffer.buffer)
+print(t.registerFile)
+print(t.rob.ROB_Entries)
+print("-----")
+t.commit()
+t.writeBack()
+t.execute()
+t.issue()
+t.fetch()
+print(t.instructionBuffer.buffer)
+print(t.registerFile)
+print(t.rob.ROB_Entries)
+print("-----")
+t.commit()
+t.writeBack()
+t.execute()
+t.issue()
+t.fetch()
+print(t.instructionBuffer.buffer)
+print(t.registerFile)
+print(t.rob.ROB_Entries)
+print("-----")
+t.commit()
+t.writeBack()
+t.execute()
+t.issue()
+t.fetch()
+print(t.instructionBuffer.buffer)
+print(t.registerFile)
+print(t.rob.ROB_Entries)
+print("-----")
+t.commit()
+t.writeBack()
+t.execute()
+t.issue()
+t.fetch()
+print(t.instructionBuffer.buffer)
+print(t.registerFile)
+print(t.rob.ROB_Entries)
+print("-----")
 # print(t.rob.head)
 # print(t.rob.tail)
 # print(t.registerStatus.registers)

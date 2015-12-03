@@ -10,16 +10,14 @@ class InstructionBuffer(object):
 		self.tail += 1
 
 	def isFull(self):
-		n = self.head - 1
-		p = len(self.buffer)
-		mod = (n%p + p) % p
-		check = self.head == 0 and self.tail == 0
+		check = self.head == self.tail and self.buffer[self.head % len(self.buffer)] == None
 		# print(self.head, self.tail, check)
 		# print((self.head % len(self.buffer)) == ((self.tail) % len(self.buffer)) and not check)
 		# print("---")
 		return (self.head % len(self.buffer)) == ((self.tail) % len(self.buffer)) and not check
 
 	def issue(self):
+		self.buffer[self.head % len(self.buffer)] = None
 		self.head += 1
 
 	def peek(self):

@@ -20,6 +20,7 @@ class ROB(object):
 
 	def commit(self):
 		if(self.ROB_Entries[self.head % self.size].ready):
+			self.ROB_Entries[self.head % self.size] = None
 			self.head += 1
 
 
