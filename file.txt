@@ -6,5 +6,5 @@ cacheL2(4096,4,1,16,wb)
 .ORG 16
 loop : lw r1 , r2 , 45
 test: addi r4 , r1 , 20
-loop : mul r1 , r2 , r3
+loop : nand r1 , r5 , r3
 test: div r1 , r3 , r2

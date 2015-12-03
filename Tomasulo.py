@@ -3,7 +3,6 @@ from ReservationStation import *
 from InstructionBuffer import *
 from ROB import *
 from RegisterStatus import *
-
 class Tomasulo(object):
 	"""docstring for Tomasulo"""
 	def __init__(self , filename):
@@ -39,6 +38,11 @@ class Tomasulo(object):
 		for i in range(LogicUnitSize):
 			self.reservationStations.append(ReservationStation("Logic", LogicUnitCycle))
 
+
+		for i in range(self.LDSTUnitSize):
+			self.reservationStations.append(ReservationStation("LOGIC",self.LDSTUnitCycle))
+
+
 		self.currentPC = self.m.pc
 		self.instructionBuffer = InstructionBuffer(self.bufferSize)
 
@@ -73,6 +77,9 @@ class Tomasulo(object):
 			elif instruction[0] in self.m.parser.ldstInstructions :
 				if not self.helper(instruction, "LDST"):
 					break
+			elif instruction[0] == "nand":
+				if not self.helper(instruction , "LOGIC") :
+					break
 			else:
 				self.instructionBuffer.issue()
 			count += 1
@@ -91,7 +98,9 @@ class Tomasulo(object):
 				address = None
 				self.instructionBuffer.issue()
 				entryNumber = self.rob.add(instruction[0],instruction[1],None)
+
 				if s == "MUL" or s == "ADD" or s == "LDST" or s == "Logic":
+
 					if self.registerStatus.registers[instruction[2]] == None :
 						readySource1 = instruction[2]
 						notReadySource1 = None
@@ -196,7 +205,8 @@ class Tomasulo(object):
 			a = self.registerFile[source1]
 			b = self.registerFile[source2]
 			return (~(a & b))
-			 
+		else:
+			pass
 
 
 
