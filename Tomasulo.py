@@ -79,7 +79,7 @@ class Tomasulo(object):
 				address = None
 				self.instructionBuffer.issue()
 				entryNumber = self.rob.add(instruction[0],instruction[1],None)
-				if s == "MUL" or s == "ADD":
+				if s == "MUL" or s == "ADD" or s == "LDST":
 					if self.registerStatus.registers[instruction[2]] == None :
 						readySource1 = instruction[2]
 						notReadySource1 = None
@@ -96,12 +96,8 @@ class Tomasulo(object):
 					else:
 						readySource2 = instruction[3]
 						notReadySource2 = None
-				elif s == "LDST":
-					address = 50
-					readySource1 = None
-					readySource2 = None
-					notReadySource2 = None
-					notReadySource1 = None
+				else:
+					pass
 				self.registerStatus.registers[instruction[1]] = entryNumber
 				self.reservationStations[i].reserve(instruction[0], readySource1 , readySource2 , notReadySource1 , notReadySource2 , entryNumber , address)
 				break
@@ -115,7 +111,8 @@ class Tomasulo(object):
 			currentStation = self.reservationStations[i]
 			if currentStation.check():
 				if currentStation.notReadySource1 != None :
-					if self.registerStatus.registers[currentStation.notReadySource1] == None :
+					# print("!!!!!!!!!!!!!!!" , currentStation.notReadySource1)
+					if self.registerStatus.registers[currentStation.notReadySource1] == None:
 						currentStation.readySource1 = currentStation.notReadySource1
 						currentStation.notReadySource1 = None
 
@@ -132,9 +129,9 @@ class Tomasulo(object):
 		for i in range(len(self.reservationStations)):
 			currentStation = self.reservationStations[i]
 			# print("kkkkk")
-			print(currentStation.currentCycles )
+			# print(currentStation.currentCycles )
 			if currentStation.busy and currentStation.currentCycles == 0:
-				result = self.calculate(currentStation.op , currentStation.readySource1, currentStation.readySource2 ,currentStation.address)
+				result = self.calculate(currentStation.op , currentStation.readySource1, currentStation.readySource2)
 				# print(result, "!!@#!@#!$")
 				self.rob.update(result,currentStation.dest)
 
@@ -155,7 +152,7 @@ class Tomasulo(object):
 			self.rob.commit()
 
 
-	def calculate(self,op, source1 , source2 , address):
+	def calculate(self,op, source1 , source2):
 		if op == "addi":
 			a= self.registerFile[source1]
 			return a + int(source2)  # not a source its just a number
@@ -177,6 +174,7 @@ class Tomasulo(object):
 			# print(source1, source2, self.registerFile[source1], self.registerFile[source2])
 			return a // b
 		elif op == "lw":
+			address = self.registerFile[source1] + int(source2)
 			self.m.search(self.m.level1_cache, address)
 			result = self.memory[int(address)]
 			return result
