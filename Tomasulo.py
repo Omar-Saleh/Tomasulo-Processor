@@ -14,25 +14,30 @@ class Tomasulo(object):
 		#print(m.instructions)
 		self.instructions = self.m.instructions
 		self.registerStatus = RegisterStatus()
-		self.ROBSize = int(input("Please enter ROB size: "))
+		ROBSize = int(input("Please enter ROB size: "))
 		self.rob = ROB(self.ROBSize)
 		self.pipelineWidth = int(input("Please enter pipeline width: "))
-		self.bufferSize = int(input("Please enter size of instruction buffer: "))	
-		self.AddUnitSize = int(input("Please enter number of ADD units: "))
-		self.AddUnitCycle = int(input("Please enter number of ADD units cycles: "))
-		self.MULTUnitSize = int(input("Please enter number of MULT units: "))
-		self.MULTUnitCycles = int(input("Please enter number of MULT units cycles: "))
-		self.LDSTUnitSize = int(input("Please enter number of LD/ST units: "))
-		self.LDSTUnitCycle = int(input("Please enter number of LD/ST units cycles: "))
+		bufferSize = int(input("Please enter size of instruction buffer: "))	
+		AddUnitSize = int(input("Please enter number of ADD Units: "))
+		AddUnitCycle = int(input("Please enter number of ADD Units cycles: "))
+		MULTUnitSize = int(input("Please enter number of MULT Units: "))
+		MULTUnitCycles = int(input("Please enter number of MULT Units cycles: "))
+		LDSTUnitSize = int(input("Please enter number of LD/ST Units: "))
+		LDSTUnitCycle = int(input("Please enter number of LD/ST Units cycles: "))
+		LogicUnitSize = int(input("Please enter number of Logic Units: "))
+		LogicUnitCycle = int(input("Please enter number of Logic Unit cycles: "))
 
-		for i in range(self.AddUnitSize):
-			self.reservationStations.append(ReservationStation("ADD",self.AddUnitCycle))
+		for i in range(AddUnitSize):
+			self.reservationStations.append(ReservationStation("ADD",AddUnitCycle))
 
-		for i in range(self.MULTUnitSize):
-			self.reservationStations.append(ReservationStation("MUL",self.MULTUnitCycles))
+		for i in range(MULTUnitSize):
+			self.reservationStations.append(ReservationStation("MUL",MULTUnitCycles))
 
-		for i in range(self.LDSTUnitSize):
-			self.reservationStations.append(ReservationStation("LDST",self.LDSTUnitCycle))
+		for i in range(LDSTUnitSize):
+			self.reservationStations.append(ReservationStation("LDST",LDSTUnitCycle))
+
+		for i in range(LogicUnitSize):
+			self.reservationStations.append(ReservationStation("Logic", LogicUnitCycle))
 
 		self.currentPC = self.m.pc
 		self.instructionBuffer = InstructionBuffer(self.bufferSize)
@@ -41,8 +46,15 @@ class Tomasulo(object):
 		for i in range(self.pipelineWidth):
 			if not self.instructionBuffer.isFull() and self.currentPC in self.instructions.keys():
 				self.instructionBuffer.insert(self.instructions[self.currentPC])
-				if self.instructions[self.currentPC][0].lower() in self.m.parser.branchingInstructions :
-					pass	
+				if self.instructions[self.currentPC][0].lower() in self.m.parser.branchingInstructions:
+					if self.instructions[self.currentPC][0] == "jmp" and self.registerStatus.registers[self.instructions[self.currentPC][1]] == None:
+						self.instructionBuffer.insert(self.instructions[self.currentPC])
+						self.currentPC += 2 + self.registerFile[self.instructions[self.currentPC][1]] + int(self.instructions[self.currentPC][2])
+					elif self.instructions[self.currentPC][0] == "beq":
+						if self.instructions[self.currentPC][3] & (1 << 6) != 0:
+							pass
+						else:
+							pass
 				else:
 					self.currentPC += 2
 
@@ -79,7 +91,7 @@ class Tomasulo(object):
 				address = None
 				self.instructionBuffer.issue()
 				entryNumber = self.rob.add(instruction[0],instruction[1],None)
-				if s == "MUL" or s == "ADD" or s == "LDST":
+				if s == "MUL" or s == "ADD" or s == "LDST" or s == "Logic":
 					if self.registerStatus.registers[instruction[2]] == None :
 						readySource1 = instruction[2]
 						notReadySource1 = None
@@ -133,15 +145,15 @@ class Tomasulo(object):
 			if currentStation.busy and currentStation.currentCycles == 0:
 				result = self.calculate(currentStation.op , currentStation.readySource1, currentStation.readySource2)
 				# print(result, "!!@#!@#!$")
-				self.rob.update(result,currentStation.dest)
-
-				registerName = self.rob.ROB_Entries[currentStation.dest].dest
-				# print(registerName)
-				# print("-----")
-				#self.registerFile[registerName] = result
-				self.registerStatus.registers[registerName] = None
-				currentStation.currentCycles = currentStation.cycles
-				currentStation.busy = False
+				if self.rob.ROB_Entries[currentStation.dest % self.rob.size] != None
+					self.rob.update(result,currentStation.dest)
+					registerName = self.rob.ROB_Entries[currentStation.dest % self.rob.size].dest
+					# print(registerName)
+					# print("-----")
+					#self.registerFile[registerName] = result
+					self.registerStatus.registers[registerName] = None
+					currentStation.currentCycles = currentStation.cycles
+					currentStation.busy = False
 
 	def commit(self):
 		# print(self.rob.ROB_Entries[self.rob.head % self.rob.size])
@@ -178,8 +190,13 @@ class Tomasulo(object):
 			self.m.search(self.m.level1_cache, address)
 			result = self.memory[int(address)]
 			return result
-		elif op == "Sw":
-			pass 
+		elif op == "sw":
+			address = self.registerFile[source1] + int(source2)
+		elif op == "nand":
+			a = self.registerFile[source1]
+			b = self.registerFile[source2]
+			return (~(a & b))
+			 
 
 
 
