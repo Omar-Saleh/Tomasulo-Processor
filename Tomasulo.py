@@ -6,24 +6,24 @@ from RegisterStatus import *
 
 class Tomasulo(object):
 	"""docstring for Tomasulo"""
-	def __init__(self):
+	def __init__(self , filename):
 		self.reservationStations = [] 
-		self.m = MemoryHierarchy("file.txt",20)
+		self.m = MemoryHierarchy(filename,20)
 		self.registerFile = self.m.registerValues
 		self.memory = self.m.main_memory
 		#print(m.instructions)
 		self.instructions = self.m.instructions
 		self.registerStatus = RegisterStatus()
-		self.ROBSize = int(input("Please enter ROB size : "))
+		self.ROBSize = int(input("Please enter ROB size: "))
 		self.rob = ROB(self.ROBSize)
-		self.pipelineWidth = int(input("Please enter pipeline width :"))
-		self.bufferSize = int(input("Please enter size of instruction buffer :"))	
-		self.AddUnitSize = int(input("Please enter number of ADD units : "))
-		self.AddUnitCycle = int(input("Please enter number of ADD units cycles : "))
-		self.MULTUnitSize = int(input("Please enter number of MULT units : "))
-		self.MULTUnitCycles = int(input("Please enter number of MULT units cycles : "))
-		self.LDSTUnitSize = int(input("Please enter number of LD/ST units : "))
-		self.LDSTUnitCycle = int(input("Please enter number of LD/ST units cycles : "))
+		self.pipelineWidth = int(input("Please enter pipeline width: "))
+		self.bufferSize = int(input("Please enter size of instruction buffer: "))	
+		self.AddUnitSize = int(input("Please enter number of ADD units: "))
+		self.AddUnitCycle = int(input("Please enter number of ADD units cycles: "))
+		self.MULTUnitSize = int(input("Please enter number of MULT units: "))
+		self.MULTUnitCycles = int(input("Please enter number of MULT units cycles: "))
+		self.LDSTUnitSize = int(input("Please enter number of LD/ST units: "))
+		self.LDSTUnitCycle = int(input("Please enter number of LD/ST units cycles: "))
 
 		for i in range(self.AddUnitSize):
 			self.reservationStations.append(ReservationStation("ADD",self.AddUnitCycle))
@@ -49,22 +49,22 @@ class Tomasulo(object):
 	def issue(self):
 		#checking rob
 		count = 0
-		while self.instructionBuffer.peek() != None:
-			if not self.rob.isFull():
-				# print("HI")
-				instruction = self.instructionBuffer.peek()
-				if instruction[0] in self.m.parser.addInstructions :    #check if its in the add unit
-					if not self.helper(instruction, "ADD"):
-						break
-				elif instruction[0] in self.m.parser.mulInstructions :
-					if not self.helper(instruction, "MUL"):
-						break
-				elif instruction[0] in self.m.parser.ldstInstructions :
-					if not self.helper(instruction, "LDST"):
-						break
-				else:
-					self.instructionBuffer.issue()
-				count += 1
+		while self.instructionBuffer.peek() != None and not self.rob.isFull():
+			# print("HI")
+			instruction = self.instructionBuffer.peek()
+			if instruction[0] in self.m.parser.addInstructions :    #check if its in the add unit
+				if not self.helper(instruction, "ADD"):
+					break
+			elif instruction[0] in self.m.parser.mulInstructions :
+				if not self.helper(instruction, "MUL"):
+					break
+			elif instruction[0] in self.m.parser.ldstInstructions :
+				if not self.helper(instruction, "LDST"):
+					break
+			else:
+				self.instructionBuffer.issue()
+			count += 1
+
 		# print("COUNT IS THE COUNT COUNT COUNT" , count)
 
 	def helper(self,instruction, s):
@@ -76,37 +76,39 @@ class Tomasulo(object):
 				# print("here")
 				# print(instruction)
 				reservedPlace = True
+				address = None
 				self.instructionBuffer.issue()
 				entryNumber = self.rob.add(instruction[0],instruction[1],None)
+				if s == "MUL" or s == "ADD":
+					if self.registerStatus.registers[instruction[2]] == None :
+						readySource1 = instruction[2]
+						notReadySource1 = None
+					else :
+						readySource1 = None
+						notReadySource1 = instruction[2]
 
-				if self.registerStatus.registers[instruction[2]] == None :
-					readySource1 = instruction[2]
-					notReadySource1 = None
-				else :
+					if 'r' in instruction[3] and self.registerStatus.registers[instruction[3]] == None:
+						readySource2 = instruction[3]
+						notReadySource2 = None
+					elif 'r' in instruction[3] and self.registerStatus.registers[instruction[3]] != None:
+						readySource2 = None
+						notReadySource2 = instruction[3]
+					else:
+						readySource2 = instruction[3]
+						notReadySource2 = None
+				elif s == "LDST":
+					address = 50
 					readySource1 = None
-					notReadySource1 = instruction[2]
-
-				if 'r' in instruction[3] and self.registerStatus.registers[instruction[3]] == None:
-					readySource2 = instruction[3]
-					notReadySource2 = None
-				elif 'r' in instruction[3] and self.registerStatus.registers[instruction[3]] != None:
 					readySource2 = None
-					notReadySource2 = instruction[3]
-				else:
-					readySource2 = instruction[3]
 					notReadySource2 = None
-
+					notReadySource1 = None
 				self.registerStatus.registers[instruction[1]] = entryNumber
-				if s == "LDST":
-					pass
-				else :
-					address = None
 				self.reservationStations[i].reserve(instruction[0], readySource1 , readySource2 , notReadySource1 , notReadySource2 , entryNumber , address)
 				break
-		if not reservedPlace:
-			return False
-		else:
+		if reservedPlace:
 			return True
+		else:
+			return False
 
 	def execute(self):
 		for i in range(len(self.reservationStations)):
@@ -133,19 +135,22 @@ class Tomasulo(object):
 			print(currentStation.currentCycles )
 			if currentStation.busy and currentStation.currentCycles == 0:
 				result = self.calculate(currentStation.op , currentStation.readySource1, currentStation.readySource2 ,currentStation.address)
-				print(result)
-				print("-----")
+				# print(result, "!!@#!@#!$")
 				self.rob.update(result,currentStation.dest)
+
 				registerName = self.rob.ROB_Entries[currentStation.dest].dest
+				# print(registerName)
+				# print("-----")
 				#self.registerFile[registerName] = result
 				self.registerStatus.registers[registerName] = None
 				currentStation.currentCycles = currentStation.cycles
 				currentStation.busy = False
 
 	def commit(self):
-		print(self.rob.ROB_Entries)
+		# print(self.rob.ROB_Entries[self.rob.head % self.rob.size])
 		if self.rob.ROB_Entries[self.rob.head % self.rob.size] != None and self.rob.ROB_Entries[self.rob.head % self.rob.size].ready:
 			registerName = self.rob.ROB_Entries[self.rob.head % self.rob.size].dest
+			# print(registerName,  self.rob.ROB_Entries[self.rob.head % self.rob.size].value, "!!!!!!!!!!!!!!!!!!!!")
 			self.registerFile[registerName] = self.rob.ROB_Entries[self.rob.head % self.rob.size].value
 			self.rob.commit()
 
@@ -169,9 +174,10 @@ class Tomasulo(object):
 		elif op == "div":
 			a = self.registerFile[source1]
 			b = self.registerFile[source2]
+			# print(source1, source2, self.registerFile[source1], self.registerFile[source2])
 			return a // b
 		elif op == "lw":
-			self.m.search(address)
+			self.m.search(self.m.level1_cache, address)
 			result = self.memory[int(address)]
 			return result
 		elif op == "Sw":
@@ -179,79 +185,79 @@ class Tomasulo(object):
 
 
 
-t = Tomasulo()
-t.commit()
-t.writeBack()
-t.execute()
-t.issue()
-t.fetch()
-print(t.instructionBuffer.buffer)
-print(t.registerFile)
-print(t.rob.ROB_Entries)
-print("-----")
-t.commit()
-t.writeBack()
-t.execute()
-t.issue()
-t.fetch()
-print(t.instructionBuffer.buffer)
-print(t.registerFile)
-print(t.rob.ROB_Entries)
-print("-----")
-t.commit()
-t.writeBack()
-t.execute()
-t.issue()
-t.fetch()
-print(t.instructionBuffer.buffer)
-print(t.registerFile)
-print(t.rob.ROB_Entries)
-print("-----")
-t.commit()
-t.writeBack()
-t.execute()
-t.issue()
-t.fetch()
-print(t.instructionBuffer.buffer)
-print(t.registerFile)
-print(t.rob.ROB_Entries)
-print("-----")
-t.commit()
-t.writeBack()
-t.execute()
-t.issue()
-t.fetch()
-print(t.instructionBuffer.buffer)
-print(t.registerFile)
-print(t.rob.ROB_Entries)
-print("-----")
-t.commit()
-t.writeBack()
-t.execute()
-t.issue()
-t.fetch()
-print(t.instructionBuffer.buffer)
-print(t.registerFile)
-print(t.rob.ROB_Entries)
-print("-----")
-t.commit()
-t.writeBack()
-t.execute()
-t.issue()
-t.fetch()
-print(t.instructionBuffer.buffer)
-print(t.registerFile)
-print(t.rob.ROB_Entries)
-print("-----")
-t.commit()
-t.writeBack()
-t.execute()
-t.issue()
-t.fetch()
-print(t.instructionBuffer.buffer)
-print(t.registerFile)
-print(t.rob.ROB_Entries)
-print("-----")
+t = Tomasulo("file.txt")
+# t.commit()
+# t.writeBack()
+# t.execute()
+# t.issue()
+# t.fetch()
+# print(t.instructionBuffer.buffer)
+# print(t.registerFile)
+# print(t.rob.ROB_Entries)
+# print("-----")
+# t.commit()
+# t.writeBack()
+# t.execute()
+# t.issue()
+# t.fetch()
+# print(t.instructionBuffer.buffer)
+# print(t.registerFile)
+# print(t.rob.ROB_Entries)
+# print("-----")
+# t.commit()
+# t.writeBack()
+# t.execute()
+# t.issue()
+# t.fetch()
+# print(t.instructionBuffer.buffer)
+# print(t.registerFile)
+# print(t.rob.ROB_Entries)
+# print("-----")
+# t.commit()
+# t.writeBack()
+# t.execute()
+# t.issue()
+# t.fetch()
+# print(t.instructionBuffer.buffer)
+# print(t.registerFile)
+# print(t.rob.ROB_Entries)
+# print("-----")
+# t.commit()
+# t.writeBack()
+# t.execute()
+# t.issue()
+# t.fetch()
+# print(t.instructionBuffer.buffer)
+# print(t.registerFile)
+# print(t.rob.ROB_Entries)
+# print("-----")
+# t.commit()
+# t.writeBack()
+# t.execute()
+# t.issue()
+# t.fetch()
+# print(t.instructionBuffer.buffer)
+# print(t.registerFile)
+# print(t.rob.ROB_Entries)
+# print("-----")
+# t.commit()
+# t.writeBack()
+# t.execute()
+# t.issue()
+# t.fetch()
+# print(t.instructionBuffer.buffer)
+# print(t.registerFile)
+# print(t.rob.ROB_Entries)
+# print("-----")
+# t.commit()
+# t.writeBack()
+# t.execute()
+# t.issue()
+# t.fetch()
+# print(t.instructionBuffer.buffer)
+# print(t.registerFile)
+# print(t.rob.ROB_Entries)
+# print("-----")
 # print(t.rob.head)
 # print(t.rob.tail)
 # print(t.registerStatus.registers)
