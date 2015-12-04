@@ -1,7 +1,7 @@
-cacheL1(512,4,1,4,wb)
-cacheL2(1024,4,1,8,wb)
-cacheL2(4096,4,1,16,wb)
-cacheL2(4096,4,1,16,wb)
+cacheL1(512,4,4,4,wb)
+cacheL2(1024,4,4,8,wb)
+cacheL2(4096,4,4,16,wb)
+cacheL2(4096,4,4,16,wb)
 
 .ORG 16
 loop : beq r1 , r2 , 4

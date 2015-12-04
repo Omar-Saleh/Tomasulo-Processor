@@ -18,7 +18,7 @@ class Cache(object):
 		#self.hit_cycle_time = hit_cycle_time
 		#self.miss_cycle_time = miss_cycle_time
 		self.cycle_time = cycle_time
-		self.entries = [] # al mafrod tb2a array of class entry
+		self.entries = [] 
 		self.hits = 0
 		self.misses = 0
 		for i in range(self.num_of_sets):

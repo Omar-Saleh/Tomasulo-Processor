@@ -65,7 +65,7 @@ class MemoryHierarchy(object):
 		address_index = calculate_index(entry.address, cache.tag, cache.index, cache.offset)
 
 		if len(cache.entries[address_index]) == cache.set_size:
-			self.replace(entry, cache)
+			self.replace(entry, cache,True)
 		else:
 			cache.entries[address_index][address_tag] = entry
 
@@ -76,35 +76,66 @@ class MemoryHierarchy(object):
 			# print("Last")
 
 
+
+
 # Write Back should write down to a cache/main memory if there was no empty space to write and the entry was marked as dirty
-	def replace(self, entry, cache):
+# if flag = true then its write back if its = false then its write through
+	def replace(self, entry, cache , flag):
 		#pass
 		address_tag = calculate_tag(entry.address, cache.tag, cache.index, cache.offset)
 		address_index = calculate_index(entry.address, cache.tag, cache.index, cache.offset)
+		if len(cache.entries[address_index]) == cache.set_size or address_tag in cache.entries[address_index].keys():
+			
 
-		r = random.randint(0,cache.set_size - 1)
-		resolved = False
-		for tag in cache.entries[address_index].keys():
-			if cache.entries[address_index][tag].valid_bit == 0:
-				del cache.entries[address_index][tag]
-				resolved = True
-				break
-		temp = entry
-		if not resolved:
+			r = random.randint(0,cache.set_size - 1)
+			resolved = False
 			for tag in cache.entries[address_index].keys():
-				if r == 0:
-					temp = cache.entries[address_index][tag]
+				if cache.entries[address_index][tag].valid_bit == 0:
 					del cache.entries[address_index][tag]
+					resolved = True
 					break
-				r -= 1
-		cache.entries[address_index][address_tag] = entry			
-		if temp.dirty_bit == 1:
-			# Still Propagating in cache
-			if cache.child != None:
-				self.replace(temp,cache.child)
-			# Reached Main Memory
-			else:
-				pass
+
+			if not resolved :
+				for tag in cache.entries[address_index].keys():
+					if cache.entries[address_index][tag].dirty_bit == 0:
+						del cache.entries[address_index][tag]
+						resolved = True
+						break
+
+			temp = None
+
+			if not resolved:
+				for tag in cache.entries[address_index].keys():
+					if r == 0:
+						temp = cache.entries[address_index][tag]
+						del cache.entries[address_index][tag]
+						break
+					r -= 1
+			cache.entries[address_index][address_tag] = entry
+
+			if not resolved and temp.dirty_bit == 1:
+				# Still Propagating in cache
+
+				if cache.child != None:
+					if cache.child.writing_policy == "wt" :
+						self.replace(temp,cache.child,False) 
+					else :
+						self.replace(temp,cache.child,True)
+
+				# Reached Main Memory
+				else:
+					pass
+
+			if flag == False and cache.child != None :
+				self.replace(entry,cache.child,False)
+		else :
+			cache.entries[address_index][address_tag] = entry
+
+			if cache.child != None and flag == False:
+				self.elapsed_time += cache.cycle_time
+				self.replace(entry,cache.child,False)
+
+
 
 	def create(self):
 		array = self.parser.cacheArray
@@ -134,8 +165,24 @@ def calculate_index(address, tag_bits, index_bits, offset_bits):
 	address_index >>= offset_bits
 	return address_index
 
-# a = Cache(512,16,1,4,"wb",None)
-# m = MemoryHierarchy(a , 20)
+a = Cache(512,16,1,4,"wb",None)
+m = MemoryHierarchy("file.txt" , 20)
+
+m.search(m.level1_cache,128)
+m.search(m.level1_cache,256)
+m.search(m.level1_cache,512)
+m.search(m.level1_cache,1024)
+m.search(m.level1_cache,2048)
+
+e = Entry(1,1,50)
+m.replace(e, m.level1_cache,False)
+temp = m.level1_cache
+for i in range(4):
+
+	print(temp.entries)
+	print("_________")
+	temp = temp.child
+
 # m.search(50, a)
 # print(m.i_cache.entries[3])
 # m.search(int("111000110001" , 2) , a)
