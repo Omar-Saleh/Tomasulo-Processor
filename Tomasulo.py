@@ -46,6 +46,21 @@ class Tomasulo(object):
 		self.toggleBranch = False
 		self.totalBranches = 0
 		self.branchMissPredictions = 0
+		cycles = 0
+		while self.currentPC in self.instructions.keys() or self.rob.ROB_Entries[self.rob.head % self.rob.size] != None :
+			cycles += 1
+			self.commit()
+			self.writeBack()
+			self.execute()
+			self.issue()
+			self.fetch()
+			print(self.instructionBuffer.buffer)
+			print(self.registerFile)
+			print(self.rob.ROB_Entries)
+			print("-----")
+
+		print(cycles)
+			
 
 	def fetch(self):
 		for i in range(self.pipelineWidth):
@@ -273,13 +288,13 @@ class Tomasulo(object):
 				return int(address)
 			else:
 				return None 
-		else:
+		else:   
 			return None		
 
 # def offset_conversion(number):
 # 	pass
 
-# t = Tomasulo("file.txt")
+t = Tomasulo("file.txt")
 # t.commit()
 # t.writeBack()
 # t.execute()
