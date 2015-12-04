@@ -3,6 +3,7 @@ from ReservationStation import *
 from InstructionBuffer import *
 from ROB import *
 from RegisterStatus import *
+
 class Tomasulo(object):
 	"""docstring for Tomasulo"""
 	def __init__(self , filename):
@@ -208,7 +209,7 @@ class Tomasulo(object):
 						self.reservationStations[i].flush()
 				else:
 					self.rob.commit()
-			elif self.rob.ROB_Entries[self.rob.head % self.rob.size].rtype == 'jmp':
+			elif self.rob.ROB_Entries[self.rob.head % self.rob.size].type == 'jmp':
 				self.rob.commit()
 			else:
 				registerName = self.rob.ROB_Entries[self.rob.head % self.rob.size].dest
@@ -240,11 +241,19 @@ class Tomasulo(object):
 			return a // b
 		elif op == "lw":
 			address = self.registerFile[source1] + int(source2)
-			self.m.search(self.m.level1_cache, address)
+			self.m.search(self.m.d_cache, address)
 			result = self.memory[int(address)]
 			return result
 		elif op == "sw":
 			address = self.registerFile[source1] + int(source2)
+			self.m.search(self.m.d_cache,address)
+			if self.m.d_cache.writing_policy == "wt":
+				entry = Entry(1,0,address)
+				self.m.replace(entry,self.m.d_cache,False)
+			else :
+				entry = Entry(1,1,address)
+				self.m.replace(entry,self.m.d_cache,True)
+
 		elif op == "nand":
 			a = self.registerFile[source1]
 			b = self.registerFile[source2]
@@ -270,7 +279,7 @@ class Tomasulo(object):
 # def offset_conversion(number):
 # 	pass
 
-t = Tomasulo("file.txt")
+# t = Tomasulo("file.txt")
 # t.commit()
 # t.writeBack()
 # t.execute()
@@ -343,7 +352,15 @@ t = Tomasulo("file.txt")
 # print(t.registerFile)
 # print(t.rob.ROB_Entries)
 # print("-----")
-# print(t.rob.head)
-# print(t.rob.tail)
-# print(t.registerStatus.registers)
-# print(t.instructionBuffer.buffer)
+# # print(t.rob.head)
+# # print(t.rob.tail)
+# # print(t.registerStatus.registers)
+# # print(t.instructionBuffer.buffer)
+
+# temp = t.m.d_cache
+# for i in range(4):
+
+# 	print(temp.entries)
+# 	print("_________")
+# 	temp = temp.child
+

@@ -14,9 +14,11 @@ class MemoryHierarchy(object):
 			self.registerValues['r' + str(i)] = 5
 		self.parser = Parser(filename)
 		self.level1_cache = None
-		self.create()
 		self.pc = self.parser.pc
 		self.instructions = self.parser.instructions
+		self.i_cache = None
+		self.d_cache = None
+		self.create()
 		#for i in range(len(self.instructions)):
 	 	#	self.search(self.pc, self.level1_cache)
 	 	#	self.pc += 2
@@ -139,13 +141,17 @@ class MemoryHierarchy(object):
 
 	def create(self):
 		array = self.parser.cacheArray
-		parent = None
+		parent1 = None
+		parent2 = None
 		for i in range(len(array)):
-			c  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][1],parent)
-			if i == 0 :
-				self.level1_cache = c
+			c1  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][1],parent1)
+			c2  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][1],parent2)
 
-			parent = c
+			if i == 0 :
+				self.i_cache = c1
+				self.d_cache = c2
+			parent1 = c1
+			parent2 = c2
 
 
 def calculate_tag(address, tag_bits, index_bits, offset_bits):
@@ -165,23 +171,23 @@ def calculate_index(address, tag_bits, index_bits, offset_bits):
 	address_index >>= offset_bits
 	return address_index
 
-a = Cache(512,16,1,4,"wb",None)
-m = MemoryHierarchy("file.txt" , 20)
+# a = Cache(512,16,1,4,"wb",None)
+# m = MemoryHierarchy("file.txt" , 20)
 
-m.search(m.level1_cache,128)
-m.search(m.level1_cache,256)
-m.search(m.level1_cache,512)
-m.search(m.level1_cache,1024)
-m.search(m.level1_cache,2048)
+# m.search(m.level1_cache,128)
+# m.search(m.level1_cache,256)
+# m.search(m.level1_cache,512)
+# m.search(m.level1_cache,1024)
+# m.search(m.level1_cache,2048)
 
-e = Entry(1,1,50)
-m.replace(e, m.level1_cache,False)
-temp = m.level1_cache
-for i in range(4):
+# e = Entry(1,1,50)
+# m.replace(e, m.level1_cache,False)
+# temp = m.level1_cache
+# for i in range(4):
 
-	print(temp.entries)
-	print("_________")
-	temp = temp.child
+# 	print(temp.entries)
+# 	print("_________")
+# 	temp = temp.child
 
 # m.search(50, a)
 # print(m.i_cache.entries[3])
