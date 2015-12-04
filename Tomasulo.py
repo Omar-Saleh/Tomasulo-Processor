@@ -9,7 +9,7 @@ class Tomasulo(object):
 	def __init__(self , filename):
 		self.reservationStations = [] 
 		main_memoy_cycle_time = int(input("Please the number of cycles required to access the memory: "))
-		self.m = MemoryHierarchy(filename,)
+		self.m = MemoryHierarchy(filename,main_memoy_cycle_time)
 		self.registerFile = self.m.registerValues
 		self.memory = self.m.main_memory
 		#print(m.instructions)
@@ -48,7 +48,7 @@ class Tomasulo(object):
 		self.totalBranches = 0
 		self.branchMissPredictions = 0
 		cycles = 0
-		while self.currentPC in self.instructions.keys() or self.rob.ROB_Entries[self.rob.head % self.rob.size] != None :
+		while self.currentPC in self.instructions.keys() or self.rob.ROB_Entries[self.rob.head % self.rob.size] != None or self.instructionBuffer.peek() != None:
 			cycles += 1
 			self.commit()
 			self.writeBack()
@@ -80,7 +80,7 @@ class Tomasulo(object):
 							self.instructionBuffer.insert(self.instructions[self.currentPC])
 							self.currentPC += 2 + int(self.instructions[self.currentPC][3])
 						else:
-							print(self.instructions[self.currentPC])
+							# print(self.instructions[self.currentPC])
 							self.instructions[self.currentPC].append(self.currentPC + 2)
 							self.instructionBuffer.insert(self.instructions[self.currentPC])
 							self.currentPC += 2
@@ -119,7 +119,7 @@ class Tomasulo(object):
 		# print(instruction)
 		reservedPlace = False
 		for i in range(len(self.reservationStations)):
-			print(self.reservationStations[i].busy)
+			# print(self.reservationStations[i].busy)
 			#print(not self.reservationStations[i].check(), self.reservationStations[i].name, s)
 			if self.reservationStations[i].name == s and not self.reservationStations[i].check():
 				# print("here")
@@ -225,7 +225,7 @@ class Tomasulo(object):
 						self.reservationStations[i].flush()
 				else:
 					self.rob.commit()
-			elif self.rob.ROB_Entries[self.rob.head % self.rob.size].type == 'jmp':
+			elif self.rob.ROB_Entries[self.rob.head % self.rob.size].type == 'jmp' or self.rob.ROB_Entries[self.rob.head % self.rob.size].type == 'sw':
 				self.rob.commit()
 			else:
 				registerName = self.rob.ROB_Entries[self.rob.head % self.rob.size].dest
@@ -294,7 +294,7 @@ class Tomasulo(object):
 
 # def offset_conversion(number):
 # 	pass
-filename = input()
+filename = input("Please enter the file name required to run: ")
 t = Tomasulo(filename)
 # t.commit()
 # t.writeBack()

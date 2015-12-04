@@ -5,6 +5,6 @@ cacheL2(4096,4,4,16,wb)
 
 .ORG 16
 loop : addi r1 , r2 , 4
-test: addi r4 , r1 , 20
+test: addi r4 , r5 , 20
 loop : sw r1 , r5 , 20
 test: div r1 , r3 , r2

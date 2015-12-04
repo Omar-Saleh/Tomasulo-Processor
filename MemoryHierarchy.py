@@ -86,9 +86,7 @@ class MemoryHierarchy(object):
 		#pass
 		address_tag = calculate_tag(entry.address, cache.tag, cache.index, cache.offset)
 		address_index = calculate_index(entry.address, cache.tag, cache.index, cache.offset)
-		if len(cache.entries[address_index]) == cache.set_size or address_tag in cache.entries[address_index].keys():
-			
-
+		if len(cache.entries[address_index]) == cache.set_size or address_tag not in cache.entries[address_index].keys():
 			r = random.randint(0,cache.set_size - 1)
 			resolved = False
 			for tag in cache.entries[address_index].keys():
@@ -115,7 +113,7 @@ class MemoryHierarchy(object):
 					r -= 1
 			cache.entries[address_index][address_tag] = entry
 
-			if not resolved and temp.dirty_bit == 1:
+			if not resolved and temp != None and temp.dirty_bit == 1:
 				# Still Propagating in cache
 
 				if cache.child != None:
