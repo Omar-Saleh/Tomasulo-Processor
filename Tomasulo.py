@@ -8,7 +8,8 @@ class Tomasulo(object):
 	"""docstring for Tomasulo"""
 	def __init__(self , filename):
 		self.reservationStations = [] 
-		self.m = MemoryHierarchy(filename,20)
+		main_memoy_cycle_time = int(input("Please the number of cycles required to access the memory: "))
+		self.m = MemoryHierarchy(filename,)
 		self.registerFile = self.m.registerValues
 		self.memory = self.m.main_memory
 		#print(m.instructions)
@@ -293,8 +294,8 @@ class Tomasulo(object):
 
 # def offset_conversion(number):
 # 	pass
-
-t = Tomasulo("file.txt")
+filename = input()
+t = Tomasulo(filename)
 # t.commit()
 # t.writeBack()
 # t.execute()
