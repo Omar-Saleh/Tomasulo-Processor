@@ -33,7 +33,7 @@ class Parser(object):
 		self.instructions = [lines[i].replace(',' , ' ') for i in range(i, len(lines))]
 		self.labels = {}
 		self.scan(self.instructions)
-		print(self.instructions)
+		# print(self.instructions)
 		for i in range(len(self.instructions)):
 			self.instructions[i] = self.format(self.instructions[i])
 		indexedInstructions = {}
@@ -42,7 +42,7 @@ class Parser(object):
 			indexedInstructions[tempPc] = self.instructions[i]
 			tempPc += 2
 		self.instructions = indexedInstructions
-		print(self.instructions)
+		# print(self.instructions)
 		# print(indexedInstructions)
 		#print(self.labels)
 		# print(self.pc)

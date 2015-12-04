@@ -7,23 +7,25 @@ class MemoryHierarchy(object):
 	"""docstring for Memory-hierarchy  : cache_l1 is the level 1 cache  , line is the  16 bit address"""
 	def __init__(self, filename, main_memory_access_time):
 		self.elapsed_time = 0
-		#self.main_memory = {50: "aa" , test: "ab"}
+		self.main_memory = {50: 1250}
 		self.main_memory_access_time = main_memory_access_time
 		self.registerValues = {}
 		for i in range(31):
-			self.registerValues['r' + str(i)] = 0
+			self.registerValues['r' + str(i)] = 5
 		self.parser = Parser(filename)
 		self.level1_cache = None
-		self.create()
 		self.pc = self.parser.pc
 		self.instructions = self.parser.instructions
+		self.i_cache = None
+		self.d_cache = None
+		self.create()
 		#for i in range(len(self.instructions)):
 	 	#	self.search(self.pc, self.level1_cache)
 	 	#	self.pc += 2
 	 	#	print("First Instruction Over")
 
 
-	def search(self, address, cache):
+	def search(self, cache, address):
 	# 	Binary Conversion 
 	#	tag = address[:tag_bits]
 	#	index = address[tag_bits:tag_bits+index_bits]
@@ -47,7 +49,7 @@ class MemoryHierarchy(object):
 			cache.misses += 1
 			if cache.child != None:
 				self.elapsed_time += cache.cycle_time
-				self.search(address, cache.child)
+				self.search(cache.child, address)
 			else:
 			# Fetching From Main Memory...Need to create a new entry and propagate it upwards to all cache levels
 				# print("here")
@@ -65,7 +67,7 @@ class MemoryHierarchy(object):
 		address_index = calculate_index(entry.address, cache.tag, cache.index, cache.offset)
 
 		if len(cache.entries[address_index]) == cache.set_size:
-			self.replace(entry, cache)
+			self.replace(entry, cache,True)
 		else:
 			cache.entries[address_index][address_tag] = entry
 
@@ -76,45 +78,80 @@ class MemoryHierarchy(object):
 			# print("Last")
 
 
+
+
 # Write Back should write down to a cache/main memory if there was no empty space to write and the entry was marked as dirty
-	def replace(self, entry, cache):
+# if flag = true then its write back if its = false then its write through
+	def replace(self, entry, cache , flag):
 		#pass
 		address_tag = calculate_tag(entry.address, cache.tag, cache.index, cache.offset)
 		address_index = calculate_index(entry.address, cache.tag, cache.index, cache.offset)
+		if len(cache.entries[address_index]) == cache.set_size or address_tag in cache.entries[address_index].keys():
+			
 
-		r = random.randint(0,cache.set_size - 1)
-		resolved = False
-		for tag in cache.entries[address_index].keys():
-			if cache.entries[address_index][tag].valid_bit == 0:
-				del cache.entries[address_index][tag]
-				resolved = True
-				break
-		temp = entry
-		if not resolved:
+			r = random.randint(0,cache.set_size - 1)
+			resolved = False
 			for tag in cache.entries[address_index].keys():
-				if r == 0:
-					temp = cache.entries[address_index][tag]
+				if cache.entries[address_index][tag].valid_bit == 0:
 					del cache.entries[address_index][tag]
+					resolved = True
 					break
-				r -= 1
-		cache.entries[address_index][address_tag] = entry			
-		if temp.dirty_bit == 1:
-			# Still Propagating in cache
-			if cache.child != None:
-				self.replace(temp,cache.child)
-			# Reached Main Memory
-			else:
-				pass
+
+			if not resolved :
+				for tag in cache.entries[address_index].keys():
+					if cache.entries[address_index][tag].dirty_bit == 0:
+						del cache.entries[address_index][tag]
+						resolved = True
+						break
+
+			temp = None
+
+			if not resolved:
+				for tag in cache.entries[address_index].keys():
+					if r == 0:
+						temp = cache.entries[address_index][tag]
+						del cache.entries[address_index][tag]
+						break
+					r -= 1
+			cache.entries[address_index][address_tag] = entry
+
+			if not resolved and temp.dirty_bit == 1:
+				# Still Propagating in cache
+
+				if cache.child != None:
+					if cache.child.writing_policy == "wt" :
+						self.replace(temp,cache.child,False) 
+					else :
+						self.replace(temp,cache.child,True)
+
+				# Reached Main Memory
+				else:
+					pass
+
+			if flag == False and cache.child != None :
+				self.replace(entry,cache.child,False)
+		else :
+			cache.entries[address_index][address_tag] = entry
+
+			if cache.child != None and flag == False:
+				self.elapsed_time += cache.cycle_time
+				self.replace(entry,cache.child,False)
+
+
 
 	def create(self):
 		array = self.parser.cacheArray
-		parent = None
+		parent1 = None
+		parent2 = None
 		for i in range(len(array)):
-			c  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][1],parent)
-			if i == 0 :
-				self.level1_cache = c
+			c1  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][1],parent1)
+			c2  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][1],parent2)
 
-			parent = c
+			if i == 0 :
+				self.i_cache = c1
+				self.d_cache = c2
+			parent1 = c1
+			parent2 = c2
 
 
 def calculate_tag(address, tag_bits, index_bits, offset_bits):
@@ -135,7 +172,23 @@ def calculate_index(address, tag_bits, index_bits, offset_bits):
 	return address_index
 
 # a = Cache(512,16,1,4,"wb",None)
-# m = MemoryHierarchy(a , 20)
+# m = MemoryHierarchy("file.txt" , 20)
+
+# m.search(m.level1_cache,128)
+# m.search(m.level1_cache,256)
+# m.search(m.level1_cache,512)
+# m.search(m.level1_cache,1024)
+# m.search(m.level1_cache,2048)
+
+# e = Entry(1,1,50)
+# m.replace(e, m.level1_cache,False)
+# temp = m.level1_cache
+# for i in range(4):
+
+# 	print(temp.entries)
+# 	print("_________")
+# 	temp = temp.child
+
 # m.search(50, a)
 # print(m.i_cache.entries[3])
 # m.search(int("111000110001" , 2) , a)

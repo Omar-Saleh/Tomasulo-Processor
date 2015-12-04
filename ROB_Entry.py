@@ -5,4 +5,8 @@ class ROB_Entry(object):
 		self.dest = dest 
 		self.value = value
 		self.ready = False
+
+
+	def __repr__(self):
+		return "Type %s, Value %s, Destination Register %s, Ready %s" % (self.type, self.value, self.dest, self.ready)
 		

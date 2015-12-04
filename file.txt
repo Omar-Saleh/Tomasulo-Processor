@@ -1,11 +1,10 @@
-cacheL1(512,4,1,4,wb)
-cacheL2(1024,4,1,8,wb)
-cacheL2(4096,4,1,16,wb)
-cacheL2(4096,4,1,16,wb)
+cacheL1(512,4,4,4,wb)
+cacheL2(1024,4,4,8,wb)
+cacheL2(4096,4,4,16,wb)
+cacheL2(4096,4,4,16,wb)
 
 .ORG 16
-loop : add r1 , r2 , r3
-test: sub r4 , r3 , r2
-loop : mul r1 , r2 , r3
+loop : addi r1 , r2 , 4
+test: addi r4 , r1 , 20
+loop : sw r1 , r5 , 20
 test: div r1 , r3 , r2
-jr r1

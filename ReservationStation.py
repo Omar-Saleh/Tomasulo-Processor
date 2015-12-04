@@ -10,12 +10,13 @@ class ReservationStation(object):
 		self.notReadySource2 = None
 		self.dest = None
 		self.address = None
+		self.branchOffset = None
+		self.currentCycles = cycles
 		self.cycles = cycles
-
 	def check(self):
 		return self.busy
 
-	def reserve(self, op , readySource1 , readySource2 , notReadySource1 , notReadySource2 , dest , address):
+	def reserve(self, op , readySource1 , readySource2 , notReadySource1 , notReadySource2 , dest , address, branchOffset):
 		self.op = op
 		self.readySource1 = readySource1
 		self.readySource2 = readySource2
@@ -23,4 +24,12 @@ class ReservationStation(object):
 		self.notReadySource2 = notReadySource2
 		self.dest = dest
 		self.address = address
+		self.branchOffset = branchOffset
 		self.busy = True
+
+	def execute(self):
+		self.currentCycles -= 1
+
+	def flush(self):
+		self.busy = False
+
