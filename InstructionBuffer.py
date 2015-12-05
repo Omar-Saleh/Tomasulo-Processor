@@ -23,6 +23,10 @@ class InstructionBuffer(object):
 	def peek(self):
 		return self.buffer[self.head % len(self.buffer)]
 
+	def flush(self):
+		self.head = 0
+		self.tail = 0
+		self.buffer = [None] * len(self.buffer)
 
 
 		

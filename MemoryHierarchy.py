@@ -115,7 +115,6 @@ class MemoryHierarchy(object):
 		address_tag = calculate_tag(entry.address, cache.tag, cache.index, cache.offset)
 		address_index = calculate_index(entry.address, cache.tag, cache.index, cache.offset)
 		if len(cache.entries[address_index]) == cache.set_size or address_tag not in cache.entries[address_index].keys():
-
 			r = random.randint(0,cache.set_size - 1)
 			resolved = False
 			for tag in cache.entries[address_index].keys():

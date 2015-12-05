@@ -4,7 +4,7 @@ cacheL2(32,4,2,16,wb)
 cacheL2(64,4,2,16,wb)
 
 .ORG 16
-loop : addi r1 , r2 , 4
-test: addi r4 , r1 , 20
-loop : sw r1 , r5 , 20
-test: div r1 , r3 , r2
+addi r1 , r1 , -1
+div r5 , r6 , r7
+addi r4 , r4 , 1
+beq r1 , r3 , -8
