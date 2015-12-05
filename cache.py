@@ -15,6 +15,7 @@ class Cache(object):
 		self.num_of_sets = int( size / (length * associativity))
 		self.set_size = associativity
 		self.writing_policy = writing_policy
+
 		#self.hit_cycle_time = hit_cycle_time
 		#self.miss_cycle_time = miss_cycle_time
 		self.cycle_time = cycle_time

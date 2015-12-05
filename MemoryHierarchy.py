@@ -67,7 +67,7 @@ class MemoryHierarchy(object):
 		address_index = calculate_index(entry.address, cache.tag, cache.index, cache.offset)
 
 		if len(cache.entries[address_index]) == cache.set_size:
-			self.replace(entry, cache,True)
+			self.updateHelper(entry, cache)
 		else:
 			cache.entries[address_index][address_tag] = entry
 
@@ -77,12 +77,40 @@ class MemoryHierarchy(object):
 		# else:
 			# print("Last")
 
+	def updateHelper(self,entry,cache):
+			address_tag = calculate_tag(entry.address, cache.tag, cache.index, cache.offset)
+			address_index = calculate_index(entry.address, cache.tag, cache.index, cache.offset)
+			if len(cache.entries[address_index]) == cache.set_size or address_tag in cache.entries[address_index].keys() :
+				r = random.randint(0,cache.set_size - 1)
+				resolved = False
+				for tag in cache.entries[address_index].keys():
+					if cache.entries[address_index][tag].valid_bit == 0:
+						del cache.entries[address_index][tag]
+						resolved = True
+						cache.entries[address_index][address_tag] = entry
+						break
+
+				if not resolved :		
+					if cache.writing_policy == "wb":
+						self.replace(entry , cache)
+					else :
+
+						for tag in cache.entries[address_index].keys():
+							if r == 0:
+								temp = cache.entries[address_index][tag]
+								del cache.entries[address_index][tag]
+								break
+							r -= 1
+						cache.entries[address_index][address_tag] = entry
+			else :
+				cache.entries[address_index][address_tag] = entry 
+
 
 
 
 # Write Back should write down to a cache/main memory if there was no empty space to write and the entry was marked as dirty
 # if flag = true then its write back if its = false then its write through
-	def replace(self, entry, cache , flag):
+	def replace(self, entry, cache ):
 		#pass
 		address_tag = calculate_tag(entry.address, cache.tag, cache.index, cache.offset)
 		address_index = calculate_index(entry.address, cache.tag, cache.index, cache.offset)
@@ -93,47 +121,60 @@ class MemoryHierarchy(object):
 				if cache.entries[address_index][tag].valid_bit == 0:
 					del cache.entries[address_index][tag]
 					resolved = True
+					cache.entries[address_index][address_tag] = entry
+					if cache.writing_policy == "wt":
+						self.replace(entry,cache.child)
 					break
 
 			if not resolved :
-				for tag in cache.entries[address_index].keys():
-					if cache.entries[address_index][tag].dirty_bit == 0:
-						del cache.entries[address_index][tag]
-						resolved = True
-						break
+				if cache.writing_policy == "wb":
+					for tag in cache.entries[address_index].keys():
+						if cache.entries[address_index][tag].dirty_bit == 0:
+							del cache.entries[address_index][tag]
+							resolved = True
+							break
 
-			temp = None
+					temp = None
+					if not resolved:
+						# print(cache.entries[address_index].keys())
+						# print(r)
+						for tag in cache.entries[address_index].keys():
+							if r == 0:
+								temp = cache.entries[address_index][tag]
+								del cache.entries[address_index][tag]
+								break
+							r -= 1
 
-			if not resolved:
-				for tag in cache.entries[address_index].keys():
-					if r == 0:
-						temp = cache.entries[address_index][tag]
-						del cache.entries[address_index][tag]
-						break
-					r -= 1
-			cache.entries[address_index][address_tag] = entry
+					cache.entries[address_index][address_tag] = entry
+					if not resolved and temp != None and temp.dirty_bit == 1:
+						# Still Propagating in cache
 
-			if not resolved and temp != None and temp.dirty_bit == 1:
-				# Still Propagating in cache
+						if cache.child != None:
+							self.replace(temp,cache.child)
+							# if cache.child.writing_policy == "wt" :
+							# 	self.replace(temp,cache.child) 
+							# else :
+							# 	self.replace(temp,cache.child)
 
-				if cache.child != None:
-					if cache.child.writing_policy == "wt" :
-						self.replace(temp,cache.child,False) 
-					else :
-						self.replace(temp,cache.child,True)
+						# Reached Main Memory
+						else:
+							pass
+				else :
+					for tag in cache.entries[address_index].keys():
+						if r == 0:
+							temp = cache.entries[address_index][tag]
+							del cache.entries[address_index][tag]
+							break
+						r -= 1
+					cache.entries[address_index][address_tag] = entry
+					self.replace(entry,cache.child)
 
-				# Reached Main Memory
-				else:
-					pass
-
-			if flag == False and cache.child != None :
-				self.replace(entry,cache.child,False)
 		else :
 			cache.entries[address_index][address_tag] = entry
+			if cache.child != None and cache.writing_policy == "wt":
 
-			if cache.child != None and flag == False:
 				self.elapsed_time += cache.cycle_time
-				self.replace(entry,cache.child,False)
+				self.replace(entry,cache.child)
 
 
 
@@ -142,8 +183,8 @@ class MemoryHierarchy(object):
 		parent1 = None
 		parent2 = None
 		for i in range(len(array)):
-			c1  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][1],parent1)
-			c2  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][1],parent2)
+			c1  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][4],parent1)
+			c2  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][4],parent2)
 
 			if i == 0 :
 				self.i_cache = c1
@@ -172,15 +213,20 @@ def calculate_index(address, tag_bits, index_bits, offset_bits):
 # a = Cache(512,16,1,4,"wb",None)
 # m = MemoryHierarchy("file.txt" , 20)
 
-# m.search(m.level1_cache,128)
-# m.search(m.level1_cache,256)
-# m.search(m.level1_cache,512)
-# m.search(m.level1_cache,1024)
-# m.search(m.level1_cache,2048)
-
+# m.search(m.d_cache,128)
+# m.search(m.d_cache,256)
+# m.search(m.d_cache,512)
+# m.search(m.d_cache,1040)
+# m.search(m.d_cache,1024)
+# m.search(m.d_cache,2048)
+# print(m.d_cache.writing_policy)
 # e = Entry(1,1,50)
-# m.replace(e, m.level1_cache,False)
-# temp = m.level1_cache
+# b = Entry(1,1,5000)
+# c = Entry(1,1,7000)
+# m.replace(e, m.d_cache)
+# m.replace(b, m.d_cache)
+# m.replace(c,m.d_cache)
+# temp = m.d_cache
 # for i in range(4):
 
 # 	print(temp.entries)
