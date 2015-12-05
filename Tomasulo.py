@@ -47,13 +47,12 @@ class Tomasulo(object):
 		self.toggleBranch = False
 		self.totalBranches = 0
 		self.branchMissPredictions = 0
-		self.registerFile['r1'] = 10
-		self.registerFile['r3'] = 9
+		self.registerFile['r1'] = 20
 		self.tempRegisterFile = self.registerFile
 		cycles = 0
-		print(self.instructions)
+		# print(self.instructions)
 		while self.currentPC in self.instructions.keys() or self.rob.ROB_Entries[self.rob.head % self.rob.size] != None or self.instructionBuffer.peek() != None:
-		#for i in range(10):
+		# for i in range(10):
 			cycles += 1
 			self.commit()
 			self.writeBack()
@@ -98,6 +97,7 @@ class Tomasulo(object):
 					elif self.instructions[self.currentPC][0].lower() == 'ret' and self.registerStatus.registers[self.instructions[self.currentPC][1]] == None:
 						self.instructionBuffer.insert(self.instructions[self.currentPC])
 						self.currentPC = self.tempRegisterFile[self.instructions[self.currentPC][1]]
+						print(self.currentPC)
 					else:
 						break
 				else:
@@ -226,13 +226,13 @@ class Tomasulo(object):
 			if currentStation.busy and currentStation.currentCycles == 0:
 				result = self.calculate(currentStation.op , currentStation.readySource1, currentStation.readySource2, currentStation.address, currentStation.branchOffset)
 				# print(result, "!!@#!@#!$")
-				if self.rob.ROB_Entries[currentStation.dest % self.rob.size] != None and  self.rob.ROB_Entries[currentStation.dest % self.rob.size].type != 'jmp' and self.rob.ROB_Entries[currentStation.dest % self.rob.size].type != 'sw' and self.rob.ROB_Entries[currentStation.dest % self.rob.size].type != 'ret':
+				if self.rob.ROB_Entries[currentStation.dest % self.rob.size] != None:
 					self.rob.update(result,currentStation.dest)
 					registerName = self.rob.ROB_Entries[currentStation.dest % self.rob.size].dest
 					# print(registerName)
 					# print("-----")
 					#self.registerFile[registerName] = result
-					if self.rob.ROB_Entries[self.rob.head % self.rob.size].type != 'beq':
+					if self.rob.ROB_Entries[self.rob.head % self.rob.size].type != 'beq' and self.rob.ROB_Entries[currentStation.dest % self.rob.size].type != 'jmp' and self.rob.ROB_Entries[currentStation.dest % self.rob.size].type != 'sw' and self.rob.ROB_Entries[currentStation.dest % self.rob.size].type != 'ret':
 						self.tempRegisterFile[registerName] = result
 					self.registerStatus.registers[registerName] = None
 					currentStation.currentCycles = currentStation.cycles
