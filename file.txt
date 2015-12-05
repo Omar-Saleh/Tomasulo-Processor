@@ -1,7 +1,7 @@
-cacheL1(512,4,4,4,wb)
-cacheL2(1024,4,4,8,wb)
-cacheL2(4096,4,4,16,wb)
-cacheL2(4096,4,4,16,wb)
+cacheL1(512,4,4,4,wt)
+cacheL2(1024,4,4,8,wt)
+cacheL2(4096,4,4,16,wt)
+cacheL2(4096,4,4,16,wt)
 
 .ORG 16
 loop : addi r1 , r2 , 4
