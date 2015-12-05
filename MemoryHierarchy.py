@@ -92,7 +92,7 @@ class MemoryHierarchy(object):
 
 				if not resolved :		
 					if cache.writing_policy == "wb":
-						replace(entry , cache)
+						self.replace(entry , cache)
 					else :
 
 						for tag in cache.entries[address_index].keys():
@@ -114,7 +114,7 @@ class MemoryHierarchy(object):
 		#pass
 		address_tag = calculate_tag(entry.address, cache.tag, cache.index, cache.offset)
 		address_index = calculate_index(entry.address, cache.tag, cache.index, cache.offset)
-		if len(cache.entries[address_index]) == cache.set_size or address_tag in cache.entries[address_index].keys():
+		if len(cache.entries[address_index]) == cache.set_size or address_tag not in cache.entries[address_index].keys():
 
 			r = random.randint(0,cache.set_size - 1)
 			resolved = False
@@ -136,17 +136,18 @@ class MemoryHierarchy(object):
 							break
 
 					temp = None
-
 					if not resolved:
+						# print(cache.entries[address_index].keys())
+						# print(r)
 						for tag in cache.entries[address_index].keys():
 							if r == 0:
 								temp = cache.entries[address_index][tag]
 								del cache.entries[address_index][tag]
 								break
 							r -= 1
-					cache.entries[address_index][address_tag] = entry
 
-					if not resolved and temp.dirty_bit == 1:
+					cache.entries[address_index][address_tag] = entry
+					if not resolved and temp != None and temp.dirty_bit == 1:
 						# Still Propagating in cache
 
 						if cache.child != None:
@@ -159,7 +160,6 @@ class MemoryHierarchy(object):
 						# Reached Main Memory
 						else:
 							pass
-
 				else :
 					for tag in cache.entries[address_index].keys():
 						if r == 0:
@@ -211,23 +211,28 @@ def calculate_index(address, tag_bits, index_bits, offset_bits):
 	address_index >>= offset_bits
 	return address_index
 
-a = Cache(512,16,1,4,"wb",None)
-m = MemoryHierarchy("file.txt" , 20)
+# a = Cache(512,16,1,4,"wb",None)
+# m = MemoryHierarchy("file.txt" , 20)
 
-m.search(m.d_cache,128)
-m.search(m.d_cache,256)
-m.search(m.d_cache,512)
-m.search(m.d_cache,1024)
-m.search(m.d_cache,2048)
-print(m.d_cache.writing_policy)
-e = Entry(1,1,50)
-m.replace(e, m.d_cache)
-temp = m.d_cache
-for i in range(4):
+# m.search(m.d_cache,128)
+# m.search(m.d_cache,256)
+# m.search(m.d_cache,512)
+# m.search(m.d_cache,1040)
+# m.search(m.d_cache,1024)
+# m.search(m.d_cache,2048)
+# print(m.d_cache.writing_policy)
+# e = Entry(1,1,50)
+# b = Entry(1,1,5000)
+# c = Entry(1,1,7000)
+# m.replace(e, m.d_cache)
+# m.replace(b, m.d_cache)
+# m.replace(c,m.d_cache)
+# temp = m.d_cache
+# for i in range(4):
 
-	print(temp.entries)
-	print("_________")
-	temp = temp.child
+# 	print(temp.entries)
+# 	print("_________")
+# 	temp = temp.child
 
 # m.search(50, a)
 # print(m.i_cache.entries[3])
