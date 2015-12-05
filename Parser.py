@@ -39,9 +39,11 @@ class Parser(object):
 		indexedInstructions = {}
 		tempPc = self.pc
 		for i in range(len(self.instructions)):
+			# print("Here")
 			indexedInstructions[tempPc] = self.instructions[i]
 			tempPc += 2
 		self.instructions = indexedInstructions
+		# print(self.instructions)
 		# print(self.instructions)
 		# print(indexedInstructions)
 		#print(self.labels)
