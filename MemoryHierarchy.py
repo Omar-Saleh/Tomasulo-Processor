@@ -184,8 +184,8 @@ class MemoryHierarchy(object):
 		parent1 = None
 		parent2 = None
 		for i in range(len(array)):
-			c1  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][1],parent1)
-			c2  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][1],parent2)
+			c1  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][4],parent1)
+			c2  = Cache(int(array[i][0]),int(array[i][1]),int(array[i][2]),int(array[i][3]),array[i][4],parent2)
 
 			if i == 0 :
 				self.i_cache = c1
