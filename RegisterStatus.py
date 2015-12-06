@@ -5,4 +5,8 @@ class RegisterStatus(object):
 		for i in range(31):
 			self.registers["r"+str(i)] = None
 
+	def flush(self):
+		for i in range(31):
+			self.registers["r" + str(i)] = None
+
 

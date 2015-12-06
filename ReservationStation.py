@@ -32,4 +32,13 @@ class ReservationStation(object):
 
 	def flush(self):
 		self.busy = False
+		self.op = None
+		self.readySource1 = None
+		self.readySource2 = None
+		self.notReadySource1 = None
+		self.notReadySource2 = None
+		self.dest = None
+		self.address = None
+		self.branchOffset = None
+		self.currentCycles = self.cycles
 

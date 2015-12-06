@@ -47,12 +47,16 @@ class Tomasulo(object):
 		self.toggleBranch = False
 		self.totalBranches = 0
 		self.branchMissPredictions = 0
-		self.registerFile['r1'] = 20
+		self.registerFile['r1'] = 10
+		self.registerFile['r2'] = 11
+		self.registerFile['r3'] = 9
+		self.registerFile['r6'] = 5 ** 4
 		self.tempRegisterFile = self.registerFile
 		cycles = 0
+		self.instructionNumber = 0
 		# print(self.instructions)
 		while self.currentPC in self.instructions.keys() or self.rob.ROB_Entries[self.rob.head % self.rob.size] != None or self.instructionBuffer.peek() != None:
-		# for i in range(10):
+		# for i in range(25):
 			cycles += 1
 			self.commit()
 			self.writeBack()
@@ -60,7 +64,7 @@ class Tomasulo(object):
 			self.issue()
 			self.fetch()
 			print(self.instructionBuffer.buffer)
-			print(self.registerFile)
+			print(self.tempRegisterFile)
 			print(self.rob.ROB_Entries)
 			print("-----")
 
@@ -68,11 +72,15 @@ class Tomasulo(object):
 			
 	def fetch(self):
 		for i in range(self.pipelineWidth):
-			print(self.currentPC)
+			# print(self.currentPC)
 			if self.branchOverride != None:
-				# print("here")
+				print("here")
 				self.currentPC = int(self.branchOverride)
 				self.branchOverride = None
+
+			if self.currentPC == 16:
+				print(self.instructionBuffer.head, self.instructionBuffer.tail)
+
 			if not self.instructionBuffer.isFull() and self.currentPC in self.instructions.keys():
 				if self.instructions[self.currentPC][0].lower() in self.m.parser.branchingInstructions:
 					if self.instructions[self.currentPC][0].lower() == "jmp" and self.registerStatus.registers[self.instructions[self.currentPC][1]] == None:
@@ -83,6 +91,7 @@ class Tomasulo(object):
 							self.instructions[self.currentPC].append(self.currentPC + 2)
 							self.instructionBuffer.insert(self.instructions[self.currentPC])
 							self.currentPC += 2 + int(self.instructions[self.currentPC][3])
+							print(self.currentPC)
 						else:
 							# print(self.instructions[self.currentPC])
 							self.instructions[self.currentPC].append(self.currentPC + 2)
@@ -167,6 +176,7 @@ class Tomasulo(object):
 						notReadySource1 = None
 						readySource1 = instruction[2]
 						readySource2 = None
+						self.registerStatus.registers[instruction[1]] = entryNumber
 					elif instruction[0] == 'jmp' or instruction[0] == 'ret':
 						notReadySource1 = None
 						notReadySource2 = None
@@ -189,7 +199,7 @@ class Tomasulo(object):
 						else:
 							readySource2 = instruction[3]
 							notReadySource2 = None
-				self.registerStatus.registers[instruction[1]] = entryNumber
+							self.registerStatus.registers[instruction[1]] = entryNumber
 				# print(address, branchOffset, "SECOND")
 				self.reservationStations[i].reserve(instruction[0], readySource1 , readySource2 , notReadySource1 , notReadySource2 , entryNumber , address, branchOffset)
 				# print(self.reservationStations[i].address, self.reservationStations[i].branchOffset)
@@ -203,6 +213,8 @@ class Tomasulo(object):
 		for i in range(len(self.reservationStations)):
 			currentStation = self.reservationStations[i]
 			if currentStation.check():
+				if currentStation.op == 'addi':
+					print(currentStation.readySource1, currentStation.readySource2, currentStation.notReadySource1, currentStation.notReadySource2)					
 				if currentStation.notReadySource1 != None :
 					# print("!!!!!!!!!!!!!!!" , currentStation.notReadySource1)
 					if self.registerStatus.registers[currentStation.notReadySource1] == None:
@@ -215,7 +227,9 @@ class Tomasulo(object):
 						currentStation.notReadySource2 = None
 
 				if currentStation.notReadySource1 == None and currentStation.notReadySource2 == None:
-					currentStation.execute() # it decrements current cycles 
+						if currentStation.op == 'beq':
+							print("!!!!!", currentStation.readySource1, currentStation.readySource2, currentStation.notReadySource1, currentStation.notReadySource2)
+						currentStation.execute() # it decrements current cycles 
 						
 
 	def writeBack(self):
@@ -224,6 +238,9 @@ class Tomasulo(object):
 			# print("kkkkk")
 			# print(currentStation.currentCycles )
 			if currentStation.busy and currentStation.currentCycles == 0:
+
+				if currentStation.op == 'beq':
+					print("@@@@@@@@", currentStation.readySource1, currentStation.readySource2, currentStation.notReadySource1, currentStation.notReadySource2)
 				result = self.calculate(currentStation.op , currentStation.readySource1, currentStation.readySource2, currentStation.address, currentStation.branchOffset)
 				# print(result, "!!@#!@#!$")
 				if self.rob.ROB_Entries[currentStation.dest % self.rob.size] != None:
@@ -232,9 +249,9 @@ class Tomasulo(object):
 					# print(registerName)
 					# print("-----")
 					#self.registerFile[registerName] = result
-					if self.rob.ROB_Entries[self.rob.head % self.rob.size].type != 'beq' and self.rob.ROB_Entries[currentStation.dest % self.rob.size].type != 'jmp' and self.rob.ROB_Entries[currentStation.dest % self.rob.size].type != 'sw' and self.rob.ROB_Entries[currentStation.dest % self.rob.size].type != 'ret':
+					if currentStation.op != 'beq' and currentStation.op !=  'jmp' and currentStation.op !=  'sw' and currentStation.op !=  'ret':
 						self.tempRegisterFile[registerName] = result
-					self.registerStatus.registers[registerName] = None
+						self.registerStatus.registers[registerName] = None
 					currentStation.currentCycles = currentStation.cycles
 					currentStation.busy = False
 
@@ -248,14 +265,18 @@ class Tomasulo(object):
 					self.branchOverride = self.rob.ROB_Entries[self.rob.head % self.rob.size].value
 					self.rob.flush()
 					self.instructionBuffer.flush()
+					self.registerStatus.flush()
 					self.tempRegisterFile = self.registerFile
 					for i in range(len(self.reservationStations)):
 						self.reservationStations[i].flush()
 				else:
+					self.instructionNumber += 1
 					self.rob.commit()
 			elif self.rob.ROB_Entries[self.rob.head % self.rob.size].type == 'jmp' or self.rob.ROB_Entries[self.rob.head % self.rob.size].type == 'sw' or self.rob.ROB_Entries[self.rob.head % self.rob.size].type == 'ret':
+				self.instructionNumber += 1
 				self.rob.commit()
 			else:
+				self.instructionNumber += 1
 				registerName = self.rob.ROB_Entries[self.rob.head % self.rob.size].dest
 				# print(registerName,  self.rob.ROB_Entries[self.rob.head % self.rob.size].value, "!!!!!!!!!!!!!!!!!!!!")
 				self.registerFile[registerName] = self.rob.ROB_Entries[self.rob.head % self.rob.size].value
@@ -264,7 +285,6 @@ class Tomasulo(object):
 
 	def calculate(self,op, source1 , source2, address, branchOffset):
 		if op == "addi":
-			print(source1, self.tempRegisterFile)
 			a= self.tempRegisterFile[source1]
 			return a + int(source2)  # not a source its just a number
 		elif op == "add":
@@ -294,16 +314,17 @@ class Tomasulo(object):
 			self.m.search(self.m.d_cache,address)
 			if self.m.d_cache.writing_policy == "wt":
 				entry = Entry(1,0,address)
-				self.m.replace(entry,self.m.d_cache,False)
+				self.m.replace(entry,self.m.d_cache)
 			else :
 				entry = Entry(1,1,address)
-				self.m.replace(entry,self.m.d_cache,True)
+				self.m.replace(entry,self.m.d_cache)
 
 		elif op == "nand":
 			a = self.tempRegisterFile[source1]
 			b = self.tempRegisterFile[source2]
 			return (~(a & b))
 		elif op == 'beq':
+			print(source1, source2, self.tempRegisterFile, op, branchOffset, address)
 			self.totalBranches += 1
 			a = self.tempRegisterFile[source1]
 			b = self.tempRegisterFile[source2]
