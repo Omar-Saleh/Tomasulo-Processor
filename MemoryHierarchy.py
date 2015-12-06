@@ -72,7 +72,7 @@ class MemoryHierarchy(object):
 			cache.entries[address_index][address_tag] = entry
 
 		if cache.parent != None:
-			self.elapsed_time += cache.cycle_time
+			#self.elapsed_time += cache.cycle_time
 			self.update(entry,cache.parent)
 		# else:
 			# print("Last")
@@ -88,11 +88,15 @@ class MemoryHierarchy(object):
 						del cache.entries[address_index][tag]
 						resolved = True
 						cache.entries[address_index][address_tag] = entry
+						self.elapsed_time += cache.cycle_time
 						break
 
 				if not resolved :		
 					if cache.writing_policy == "wb":
-						self.replace(entry , cache)
+						if cache.child != None :
+							self.replace(entry , cache)
+						else :
+							pass
 					else :
 
 						for tag in cache.entries[address_index].keys():
@@ -102,7 +106,10 @@ class MemoryHierarchy(object):
 								break
 							r -= 1
 						cache.entries[address_index][address_tag] = entry
+						self.elapsed_time += cache.cycle_time
+
 			else :
+				self.elapsed_time += cache.cycle_time
 				cache.entries[address_index][address_tag] = entry 
 
 
@@ -122,8 +129,14 @@ class MemoryHierarchy(object):
 					del cache.entries[address_index][tag]
 					resolved = True
 					cache.entries[address_index][address_tag] = entry
+					self.elapsed_time += cache.cycle_time
+
 					if cache.writing_policy == "wt":
-						self.replace(entry,cache.child)
+						if cache.child != None:
+							self.replace(entry,cache.child)
+						else:
+							self.elapsed_time += main_memory_access_time
+							#reached Main memory
 					break
 
 			if not resolved :
@@ -146,6 +159,8 @@ class MemoryHierarchy(object):
 							r -= 1
 
 					cache.entries[address_index][address_tag] = entry
+					self.elapsed_time += cache.cycle_time
+
 					if not resolved and temp != None and temp.dirty_bit == 1:
 						# Still Propagating in cache
 
@@ -158,7 +173,8 @@ class MemoryHierarchy(object):
 
 						# Reached Main Memory
 						else:
-							pass
+							self.elapsed_time += self.main_memory_access_time
+
 				else :
 					for tag in cache.entries[address_index].keys():
 						if r == 0:
@@ -167,14 +183,27 @@ class MemoryHierarchy(object):
 							break
 						r -= 1
 					cache.entries[address_index][address_tag] = entry
-					self.replace(entry,cache.child)
+					self.elapsed_time += cache.cycle_time
+
+					if(cache.child != None):
+						self.replace(entry,cache.child)
+					else:
+						#reached Main Memory
+						self.elapsed_time +=self.main_memory_access_time
+
 
 		else :
 			cache.entries[address_index][address_tag] = entry
-			if cache.child != None and cache.writing_policy == "wt":
+			self.elapsed_time += cache.cycle_time
 
-				self.elapsed_time += cache.cycle_time
-				self.replace(entry,cache.child)
+			if cache.writing_policy == "wt":
+
+				if cache.child != None:
+					self.replace(entry,cache.child)
+				else:
+					#reached Main Memory
+					self.elapsed_time +=self.main_memory_access_time
+
 
 
 
@@ -219,18 +248,27 @@ def calculate_index(address, tag_bits, index_bits, offset_bits):
 # m.search(m.d_cache,1040)
 # m.search(m.d_cache,1024)
 # m.search(m.d_cache,2048)
+
 # print(m.d_cache.writing_policy)
 # e = Entry(1,1,50)
-# b = Entry(1,1,5000)
-# c = Entry(1,1,7000)
+# b = Entry(1,1,600)
+# c = Entry(1,1,10000)
+# d = Entry(1,1,6000)
+
+
 # m.replace(e, m.d_cache)
 # m.replace(b, m.d_cache)
 # m.replace(c,m.d_cache)
+# m.replace(d,m.d_cache)
+
+
 # temp = m.d_cache
 # for i in range(4):
 
 # 	print(temp.entries)
 # 	print("_________")
+# 	print(temp.hits)
+# 	print(temp.misses)
 # 	temp = temp.child
 
 # m.search(50, a)
