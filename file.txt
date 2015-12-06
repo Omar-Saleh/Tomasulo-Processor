@@ -1,7 +1,7 @@
 cacheL1(8,4,2,4,wt)
 cacheL2(16,4,2,8,wt)
-cacheL2(32,4,2,16,wb)
-cacheL2(64,4,2,16,wb)
+cacheL2(32,4,2,16,wt)
+cacheL2(64,4,2,16,wt)
 
 .ORG 16
 addi r1 , r1 , -1
