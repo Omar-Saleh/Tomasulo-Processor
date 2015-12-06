@@ -63,25 +63,64 @@ class Tomasulo(object):
 			self.execute()
 			self.issue()
 			self.fetch()
-			print(self.instructionBuffer.buffer)
-			print(self.tempRegisterFile)
-			print(self.rob.ROB_Entries)
-			print("-----")
-
-		print(cycles)
-			
+			# print(self.instructionBuffer.buffer)
+			# print(self.tempRegisterFile)
+			# print(self.rob.ROB_Entries)
+			# print("-----")
+		print("Cycles Spent in accessing memory", self.m.elapsed_time)
+		print("Cycles Spent executing the code", cycles)
+		if self.totalBranches > 0:
+			print("Branch Missprediction =", ((self.branchMissPredictions / self.totalBranches) * 100), "%")
+		print("The IPC is:" , (self.instructionNumber/cycles))
+		print("I Cache hit ratios")
+		temp = self.m.i_cache
+		i_hitratio = []
+		i_cycles = []
+		d_hitratio = []
+		d_cycles = []
+		i_amat = 0
+		d_amat = 0
+		while temp != None:
+			print(temp.hit_ratio())
+			i_hitratio.append((100 - temp.hit_ratio()) / 100)
+			i_cycles.append(temp.cycle_time)
+			temp = temp.child
+		for i in range(len(i_hitratio)):
+			levelMissRatio = 1
+			for j in range(i):
+				levelMissRatio *= i_hitratio[j]
+			i_amat += (levelMissRatio * i_cycles[i])
+		levelMissRatio = 1
+		for i in range(len(i_hitratio)):
+			levelMissRatio *= i_hitratio[j]
+		i_amat += (main_memoy_cycle_time * levelMissRatio)
+		print("The I cache amat is" , i_amat)
+		print("D Cache hit ratios")
+		temp = self.m.d_cache
+		while temp != None:
+			print(temp.hit_ratio())
+			d_hitratio.append((100 - temp.hit_ratio()) / 100)
+			d_cycles.append(temp.cycle_time)
+			temp = temp.child
+		for i in range(len(d_hitratio)):
+			levelMissRatio = 1
+			for j in range(i):
+				levelMissRatio *= d_hitratio[j]
+			d_amat += (levelMissRatio * d_cycles[i])
+		levelMissRatio = 1
+		for i in range(len(d_hitratio)):
+			levelMissRatio *= d_hitratio[j]
+		d_amat += (main_memoy_cycle_time * levelMissRatio)
+		print("The D cache amat is", d_amat)
 	def fetch(self):
 		for i in range(self.pipelineWidth):
 			# print(self.currentPC)
 			if self.branchOverride != None:
-				print("here")
 				self.currentPC = int(self.branchOverride)
 				self.branchOverride = None
 
-			if self.currentPC == 16:
-				print(self.instructionBuffer.head, self.instructionBuffer.tail)
-
 			if not self.instructionBuffer.isFull() and self.currentPC in self.instructions.keys():
+				self.m.search(self.m.i_cache, self.currentPC)
 				if self.instructions[self.currentPC][0].lower() in self.m.parser.branchingInstructions:
 					if self.instructions[self.currentPC][0].lower() == "jmp" and self.registerStatus.registers[self.instructions[self.currentPC][1]] == None:
 						self.instructionBuffer.insert(self.instructions[self.currentPC])
@@ -106,7 +145,6 @@ class Tomasulo(object):
 					elif self.instructions[self.currentPC][0].lower() == 'ret' and self.registerStatus.registers[self.instructions[self.currentPC][1]] == None:
 						self.instructionBuffer.insert(self.instructions[self.currentPC])
 						self.currentPC = self.tempRegisterFile[self.instructions[self.currentPC][1]]
-						print(self.currentPC)
 					else:
 						break
 				else:
@@ -324,7 +362,7 @@ class Tomasulo(object):
 			b = self.tempRegisterFile[source2]
 			return (~(a & b))
 		elif op == 'beq':
-			print(source1, source2, self.tempRegisterFile, op, branchOffset, address)
+			# print(source1, source2, self.tempRegisterFile, op, branchOffset, address)
 			self.totalBranches += 1
 			a = self.tempRegisterFile[source1]
 			b = self.tempRegisterFile[source2]
