@@ -69,6 +69,7 @@ class MemoryHierarchy(object):
 		if len(cache.entries[address_index]) == cache.set_size:
 			self.updateHelper(entry, cache)
 		else:
+			self.elapsed_time += cache.cycle_time
 			cache.entries[address_index][address_tag] = entry
 
 		if cache.parent != None:
@@ -241,7 +242,19 @@ def calculate_index(address, tag_bits, index_bits, offset_bits):
 
 # a = Cache(512,16,1,4,"wb",None)
 # m = MemoryHierarchy("file.txt" , 20)
-
+# m.search(m.i_cache,16)
+# print(m.elapsed_time)
+# m.search(m.i_cache,18)
+# print(m.elapsed_time)
+# m.search(m.i_cache,20)
+# print(m.elapsed_time)
+# m.search(m.i_cache,22)
+# print(m.elapsed_time)
+# m.search(m.d_cache,50)
+# print(m.elapsed_time)
+# a = Entry(1, 1, 50)
+# m.replace(a, m.d_cache)
+# print(m.elapsed_time)
 # m.search(m.d_cache,128)
 # m.search(m.d_cache,256)
 # m.search(m.d_cache,512)

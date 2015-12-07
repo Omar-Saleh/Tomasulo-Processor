@@ -47,7 +47,7 @@ class Tomasulo(object):
 		self.toggleBranch = False
 		self.totalBranches = 0
 		self.branchMissPredictions = 0
-		self.registerFile['r1'] = 10
+		self.registerFile['r1'] = 20
 		self.registerFile['r2'] = 11
 		self.registerFile['r3'] = 9
 		self.registerFile['r6'] = 5 ** 4
@@ -94,24 +94,25 @@ class Tomasulo(object):
 		for i in range(len(i_hitratio)):
 			levelMissRatio *= i_hitratio[j]
 		i_amat += (main_memoy_cycle_time * levelMissRatio)
-		print("The I cache amat is" , i_amat)
-		print("D Cache hit ratios")
+		print("The I cache amat is" , i_amat, "cycles")
 		temp = self.m.d_cache
-		while temp != None:
-			print(temp.hit_ratio())
-			d_hitratio.append((100 - temp.hit_ratio()) / 100)
-			d_cycles.append(temp.cycle_time)
-			temp = temp.child
-		for i in range(len(d_hitratio)):
+		if temp.hits != 0 or temp.misses != 0:
+			print("D Cache hit ratios")
+			while temp != None:
+				print(temp.hit_ratio())
+				d_hitratio.append((100 - temp.hit_ratio()) / 100)
+				d_cycles.append(temp.cycle_time)
+				temp = temp.child
+			for i in range(len(d_hitratio)):
+				levelMissRatio = 1
+				for j in range(i):
+					levelMissRatio *= d_hitratio[j]
+				d_amat += (levelMissRatio * d_cycles[i])
 			levelMissRatio = 1
-			for j in range(i):
+			for i in range(len(d_hitratio)):
 				levelMissRatio *= d_hitratio[j]
-			d_amat += (levelMissRatio * d_cycles[i])
-		levelMissRatio = 1
-		for i in range(len(d_hitratio)):
-			levelMissRatio *= d_hitratio[j]
-		d_amat += (main_memoy_cycle_time * levelMissRatio)
-		print("The D cache amat is", d_amat)
+			d_amat += (main_memoy_cycle_time * levelMissRatio)
+			print("The D cache amat is", d_amat, "cycles")
 	def fetch(self):
 		for i in range(self.pipelineWidth):
 			# print(self.currentPC)
@@ -130,7 +131,7 @@ class Tomasulo(object):
 							self.instructions[self.currentPC].append(self.currentPC + 2)
 							self.instructionBuffer.insert(self.instructions[self.currentPC])
 							self.currentPC += 2 + int(self.instructions[self.currentPC][3])
-							print(self.currentPC)
+							# print(self.currentPC)
 						else:
 							# print(self.instructions[self.currentPC])
 							self.instructions[self.currentPC].append(self.currentPC + 2)
@@ -251,8 +252,8 @@ class Tomasulo(object):
 		for i in range(len(self.reservationStations)):
 			currentStation = self.reservationStations[i]
 			if currentStation.check():
-				if currentStation.op == 'addi':
-					print(currentStation.readySource1, currentStation.readySource2, currentStation.notReadySource1, currentStation.notReadySource2)					
+				# if currentStation.op == 'addi':
+				# 	# print(currentStation.readySource1, currentStation.readySource2, currentStation.notReadySource1, currentStation.notReadySource2)					
 				if currentStation.notReadySource1 != None :
 					# print("!!!!!!!!!!!!!!!" , currentStation.notReadySource1)
 					if self.registerStatus.registers[currentStation.notReadySource1] == None:
@@ -265,8 +266,8 @@ class Tomasulo(object):
 						currentStation.notReadySource2 = None
 
 				if currentStation.notReadySource1 == None and currentStation.notReadySource2 == None:
-						if currentStation.op == 'beq':
-							print("!!!!!", currentStation.readySource1, currentStation.readySource2, currentStation.notReadySource1, currentStation.notReadySource2)
+						# if currentStation.op == 'beq':
+							# print("!!!!!", currentStation.readySource1, currentStation.readySource2, currentStation.notReadySource1, currentStation.notReadySource2)
 						currentStation.execute() # it decrements current cycles 
 						
 
@@ -277,8 +278,8 @@ class Tomasulo(object):
 			# print(currentStation.currentCycles )
 			if currentStation.busy and currentStation.currentCycles == 0:
 
-				if currentStation.op == 'beq':
-					print("@@@@@@@@", currentStation.readySource1, currentStation.readySource2, currentStation.notReadySource1, currentStation.notReadySource2)
+				# if currentStation.op == 'beq':
+					# print("@@@@@@@@", currentStation.readySource1, currentStation.readySource2, currentStation.notReadySource1, currentStation.notReadySource2)
 				result = self.calculate(currentStation.op , currentStation.readySource1, currentStation.readySource2, currentStation.address, currentStation.branchOffset)
 				# print(result, "!!@#!@#!$")
 				if self.rob.ROB_Entries[currentStation.dest % self.rob.size] != None:
