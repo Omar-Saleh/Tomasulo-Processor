@@ -47,10 +47,10 @@ class Tomasulo(object):
 		self.toggleBranch = False
 		self.totalBranches = 0
 		self.branchMissPredictions = 0
-		self.registerFile['r1'] = 20
-		self.registerFile['r2'] = 11
-		self.registerFile['r3'] = 9
-		self.registerFile['r6'] = 5 ** 4
+		# self.registerFile['r1'] = 20
+		# self.registerFile['r2'] = 11
+		# self.registerFile['r3'] = 9
+		# self.registerFile['r6'] = 5 ** 4
 		self.tempRegisterFile = self.registerFile
 		cycles = 0
 		self.instructionNumber = 0
@@ -71,7 +71,8 @@ class Tomasulo(object):
 		print("Cycles Spent executing the code", cycles)
 		if self.totalBranches > 0:
 			print("Branch Missprediction =", ((self.branchMissPredictions / self.totalBranches) * 100), "%")
-		print("The IPC is:" , (self.instructionNumber/cycles))
+		print("The IPC without considering memory cycles is:" , (self.instructionNumber/cycles))
+		print("The IPC considering memory cycles is:", (self.instructionNumber/(cycles + self.m.elapsed_time))))
 		print("I Cache hit ratios")
 		temp = self.m.i_cache
 		i_hitratio = []
