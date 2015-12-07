@@ -72,7 +72,7 @@ class Tomasulo(object):
 		if self.totalBranches > 0:
 			print("Branch Missprediction =", ((self.branchMissPredictions / self.totalBranches) * 100), "%")
 		print("The IPC without considering memory cycles is:" , (self.instructionNumber/cycles))
-		print("The IPC considering memory cycles is:", (self.instructionNumber/(cycles + self.m.elapsed_time))))
+		print("The IPC considering memory cycles is:", (self.instructionNumber/(cycles + self.m.elapsed_time)))
 		print("I Cache hit ratios")
 		temp = self.m.i_cache
 		i_hitratio = []
