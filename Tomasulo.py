@@ -8,7 +8,7 @@ class Tomasulo(object):
 	"""docstring for Tomasulo"""
 	def __init__(self , filename):
 		self.reservationStations = [] 
-		main_memoy_cycle_time = int(input("Please the number of cycles required to access the memory: "))
+		main_memoy_cycle_time = int(input("Please enter the number of cycles required to access the memory: "))
 		self.m = MemoryHierarchy(filename,main_memoy_cycle_time)
 		self.registerFile = self.m.registerValues
 		self.memory = self.m.main_memory
@@ -156,7 +156,7 @@ class Tomasulo(object):
 	def issue(self):
 		#checking rob
 		count = 0
-		while self.instructionBuffer.peek() != None and not self.rob.isFull():
+		while self.instructionBuffer.peek() != None and not self.rob.isFull() and count < self.pipelineWidth:
 			# print("HI")
 			instruction = self.instructionBuffer.peek()
 			if instruction[0] in self.m.parser.addInstructions or instruction[0] in self.m.parser.branchingInstructions:    #check if its in the add unit
@@ -269,7 +269,7 @@ class Tomasulo(object):
 				if currentStation.notReadySource1 == None and currentStation.notReadySource2 == None:
 						# if currentStation.op == 'beq':
 							# print("!!!!!", currentStation.readySource1, currentStation.readySource2, currentStation.notReadySource1, currentStation.notReadySource2)
-						currentStation.execute() # it decrements current cycles 
+					currentStation.execute() # it decrements current cycles 
 						
 
 	def writeBack(self):
