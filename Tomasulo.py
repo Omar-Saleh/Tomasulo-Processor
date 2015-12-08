@@ -47,9 +47,10 @@ class Tomasulo(object):
 		self.toggleBranch = False
 		self.totalBranches = 0
 		self.branchMissPredictions = 0
-		# self.registerFile['r1'] = 20
-		# self.registerFile['r2'] = 11
-		# self.registerFile['r3'] = 9
+		self.registerFile['r20'] = 0
+		self.registerFile['r1'] = 10
+		self.registerFile['r2'] = 9
+		self.registerFile['r16'] = 22
 		# self.registerFile['r6'] = 5 ** 4
 		self.tempRegisterFile = self.registerFile
 		cycles = 0
@@ -380,8 +381,11 @@ class Tomasulo(object):
 			else:
 				return None
 		elif op == 'jalr':
+			self.totalBranches += 1
 			a = int(source1)
 			return a
+		elif op == 'jmp':
+			self.totalBranches += 1
 		else:   
 			return None		
 

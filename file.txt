@@ -4,7 +4,7 @@ cacheL2(32,4,2,16,wt)
 cacheL2(64,4,2,16,wt)
 
 .ORG 16
-addi r1 , r4 , 20
-sw r1 , r5 , 45
-addi r5 , r2 , 20
-addi r3 , r2 , 20
+addi r1 , r1 , -1
+sub r5 , r5 , r5
+beq r1 , r2 , -6
+mul r6 , r6 , r6

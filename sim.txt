@@ -1,0 +1,10 @@
+cacheL1(8,4,2,4,wt)
+cacheL2(16,4,2,8,wt)
+cacheL2(32,4,2,16,wt)
+cacheL2(64,4,2,16,wt)
+
+.ORG 16
+jmp r20 , 2
+addi , r2 , r2 , -50
+nand r3 , r4 , r4
+lw r5 , r6 , 45
